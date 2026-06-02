@@ -56,11 +56,10 @@ def render_input_module():
         district_df[tehsil_col] == tehsil
     ]
 
-    # 🔥 ADD DEBUG HERE (TEMPORARY)
-    st.write("Geometry type:", type(selected))
-    st.write("Columns:", selected.columns)
-    st.write("Has geometry:", selected.geometry.name if hasattr(selected, "geometry") else "NO")
-    
+    st.write("Selected District:", district)
+    st.write("Selected Tehsil:", tehsil)
+    st.write("Total matched records:", len(selected))
+
     if selected.empty:
         st.error("No spatial data found for selected tehsil")
         return
@@ -68,7 +67,7 @@ def render_input_module():
     # -----------------------------
     # GEOMETRY CENTROID (AUTO LOCATION)
     # -----------------------------
-    geometry = selected.iloc[0].geometry
+    geometry = selected.iloc[0]["geometry"]
 
     selected_row = selected.iloc[0]
 
