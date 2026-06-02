@@ -50,7 +50,10 @@ if page == "Home":
 # INPUT MODULE (PLACEHOLDER)
 # ---------------------------
 elif page == "Input Module":
-    render_input_module()
+    st.header("📥 Input Module")
+    st.info("This module will collect user location, crop type, and farm parameters.")
+    st.text_input("Enter Location")
+    st.selectbox("Select Crop", ["Wheat", "Rice", "Maize"])
 
 # ---------------------------
 # GIS VIEWER (PLACEHOLDER SAFE)
