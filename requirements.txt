@@ -6,3 +6,5 @@ shapely
 folium
 streamlit-folium
 requests
+earthengine-api
+numpy
