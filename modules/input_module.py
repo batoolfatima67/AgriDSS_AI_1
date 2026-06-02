@@ -1,19 +1,12 @@
 import streamlit as st
 
-from modules.cache_manager import init_cache, update_cache, get_cache
-
 def render_input_module():
-
-    init_cache()
-
     st.header("📥 Input Module")
 
-    st.info(
-        "Enter farm details. This data will be used across GIS, NDVI, and AI modules."
-    )
+    st.info("Enter farm details. This data will be used across GIS, NDVI, and AI modules.")
 
     # -----------------------------
-    # SESSION STATE INIT
+    # SESSION STATE INIT (CRITICAL)
     # -----------------------------
     if "user_data" not in st.session_state:
         st.session_state.user_data = {}
