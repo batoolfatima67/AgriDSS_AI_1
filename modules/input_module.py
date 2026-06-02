@@ -9,14 +9,8 @@ def load_data():
 
     gdf = gpd.read_file(shp_path)
 
-    # IMPORTANT: preserve geometry first
-    geom_col = gdf.geometry.name
-
-    # normalize columns
+    # normalize column names ONLY
     gdf.columns = [col.upper() for col in gdf.columns]
-
-    # restore geometry explicitly
-    gdf = gdf.set_geometry(geom_col)
 
     return gdf
 
