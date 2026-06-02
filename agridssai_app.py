@@ -6,6 +6,9 @@ from modules.gee_ndvi import render_ndvi_module
 from modules.recommendation_engine import render_recommendation_module
 from modules.dashboard import render_dashboard
 from modules.report_generator import generate_report
+from modules.cache_manager import init_cache
+
+init_cache()
 
 # Page config (must be first Streamlit command)
 st.set_page_config(
