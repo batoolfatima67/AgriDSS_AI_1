@@ -109,3 +109,44 @@ elif page == "Dashboard":
 elif page == "Generate Report":
     generate_report()
 
+# ---------------------------
+# Run Anlysis
+# ---------------------------
+
+elif page == "Run Analysis":
+
+    st.header("🚀 Run Farm Analysis")
+
+    if st.button("Run Analysis"):
+
+        st.write("Running analysis...")
+         
+weather = get_weather(lat, lon, api_key)
+
+ndvi = get_ndvi(lat, lon)
+
+recommendation = generate_recommendation(
+    ndvi,
+    weather,
+    crop
+)
+
+st.session_state.weather_data = weather
+
+st.session_state.ndvi_value = ndvi
+
+st.session_state.recommendation = recommendation
+
+st.subheader("Weather")
+
+st.write(weather)
+
+st.subheader("NDVI")
+
+st.write(ndvi)
+
+st.subheader("Recommendation")
+
+st.write(recommendation)
+
+
