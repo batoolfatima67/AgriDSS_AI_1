@@ -1,6 +1,7 @@
 import streamlit as st
 from modules.input_module import render_input_module
 from modules.gis_module import render_gis_module
+from modules.weather_module import render_weather_module
 
 # Page config (must be first Streamlit command)
 st.set_page_config(
@@ -69,6 +70,8 @@ elif page == "GIS Viewer":
 # WEATHER MODULE (PLACEHOLDER)
 # ---------------------------
 elif page == "Weather Module":
+    render_weather_module()
+
     st.header("🌦️ Weather Module")
 
     st.warning("Weather API integration will be added later.")
