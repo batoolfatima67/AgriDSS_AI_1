@@ -1,21 +1,23 @@
 import streamlit as st
 import hashlib
 import json
+
 from modules.cache_manager import init_cache, update_cache, get_cache
 from modules.hash_utils import generate_input_hash
 
-def generate_input_hash(user_data):
-    return hashlib.md5(
-        json.dumps(user_data, sort_keys=True).encode()
-    ).hexdigest()
 
 def render_input_module():
+
+    init_cache()
+
     st.header("📥 Input Module")
 
-    st.info("Enter farm details. This data will be used across GIS, NDVI, and AI modules.")
+    st.info(
+        "Enter farm details. This data will be used across GIS, NDVI, and AI modules."
+    )
 
     # -----------------------------
-    # SESSION STATE INIT (CRITICAL)
+    # SESSION STATE INIT
     # -----------------------------
     if "user_data" not in st.session_state:
         st.session_state.user_data = {}
@@ -71,26 +73,27 @@ def render_input_module():
     # -----------------------------
     if st.button("Save Input Data"):
 
-    st.session_state.user_data = {
-        "latitude": lat,
-        "longitude": lon,
-        "crop": crop,
-        "area": area,
-        "irrigation": irrigation
-    }
+        st.session_state.user_data = {
+            "latitude": lat,
+            "longitude": lon,
+            "crop": crop,
+            "area": area,
+            "irrigation": irrigation
+        }
 
-    new_hash = generate_input_hash(st.session_state.user_data)
-    old_hash = get_cache("last_input_hash")
+        new_hash = generate_input_hash(st.session_state.user_data)
+        old_hash = get_cache("last_input_hash")
 
-    if new_hash != old_hash:
-        update_cache("last_input_hash", new_hash)
+        if new_hash != old_hash:
 
-        # invalidate dependent modules
-        update_cache("weather", None)
-        update_cache("ndvi", None)
-        update_cache("recommendation", None)
+            update_cache("last_input_hash", new_hash)
 
-    st.success("Input saved & system updated 🚀")
+            # Invalidate dependent modules
+            update_cache("weather", None)
+            update_cache("ndvi", None)
+            update_cache("recommendation", None)
+
+        st.success("Input saved & system updated 🚀")
 
     # -----------------------------
     # SHOW STORED DATA
