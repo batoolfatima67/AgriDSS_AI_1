@@ -66,9 +66,9 @@ def render_input_module():
     # GEOMETRY CENTROID (AUTO LOCATION)
     # -----------------------------
     if selected.empty:
-    st.error("No spatial data found")
-    return
-
+        st.error("No spatial data found")
+        return
+        
     row = selected.iloc[0]
 
     geometry = row.geometry
