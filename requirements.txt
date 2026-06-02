@@ -8,3 +8,6 @@ streamlit-folium
 requests
 earthengine-api
 numpy
+fastapi
+uvicorn
+requests
