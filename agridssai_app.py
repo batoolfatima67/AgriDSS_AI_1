@@ -1,4 +1,5 @@
 import streamlit as st
+from modules.input_module import render_input_module
 
 # Page config (must be first Streamlit command)
 st.set_page_config(
