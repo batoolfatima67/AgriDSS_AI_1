@@ -3,6 +3,7 @@ from modules.input_module import render_input_module
 from modules.gis_module import render_gis_module
 from modules.weather_module import render_weather_module
 from modules.gee_ndvi import render_ndvi_module
+from modules.recommendation_engine import render_recommendation_module
 
 # Page config (must be first Streamlit command)
 st.set_page_config(
@@ -84,3 +85,9 @@ elif page == "Weather Module":
 # ---------------------------
 elif page == "NDVI Analysis":
     render_ndvi_module()
+
+# ---------------------------
+# AI Recommendation Engine
+# ---------------------------
+elif page == "AI Recommendation Engine":
+    render_recommendation_module()
