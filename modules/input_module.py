@@ -67,11 +67,9 @@ def render_input_module():
     # -----------------------------
     # GEOMETRY CENTROID (AUTO LOCATION)
     # -----------------------------
-    geometry = selected.iloc[0]["geometry"]
+    row = selected.iloc[0]
 
-    selected_row = selected.iloc[0]
-
-    geometry = selected_row.geometry
+    geometry = row["geometry"]
 
     centroid = geometry.centroid
 
