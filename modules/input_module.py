@@ -9,9 +9,7 @@ def load_data():
 
     gdf = gpd.read_file(shp_path)
 
-    # normalize column names ONLY
-    gdf.columns = [col.upper() for col in gdf.columns]
-
+    # DO NOT TOUCH geometry OR columns initially
     return gdf
 
 def render_input_module():
@@ -67,9 +65,13 @@ def render_input_module():
     # -----------------------------
     # GEOMETRY CENTROID (AUTO LOCATION)
     # -----------------------------
+    if selected.empty:
+    st.error("No spatial data found")
+    return
+
     row = selected.iloc[0]
 
-    geometry = row["geometry"]
+    geometry = row.geometry
 
     centroid = geometry.centroid
 
