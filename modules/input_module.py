@@ -6,12 +6,16 @@ from pathlib import Path
 @st.cache_data
 def load_tehsil_data():
 
-    shp_path = Path("data/pakistan_tehsils.shp")
+    shp_path = Path("data/pakistan_tehsil.shp")
+
+    if not shp_path.exists():
+        raise FileNotFoundError(
+            f"Shapefile not found at: {shp_path}"
+        )
 
     gdf = gpd.read_file(shp_path)
 
     return gdf
-
 
 def render_input_module():
 
