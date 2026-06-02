@@ -1,5 +1,6 @@
 import streamlit as st
 from modules.input_module import render_input_module
+from modules.gis_module import render_gis_module
 
 # Page config (must be first Streamlit command)
 st.set_page_config(
@@ -56,6 +57,8 @@ elif page == "Input Module":
 # GIS VIEWER (PLACEHOLDER SAFE)
 # ---------------------------
 elif page == "GIS Viewer":
+    render_gis_module()
+    
     st.header("🗺️ GIS Viewer")
 
     st.warning("GIS module will be connected with shapefiles in next step.")
