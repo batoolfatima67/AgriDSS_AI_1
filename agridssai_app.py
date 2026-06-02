@@ -19,7 +19,7 @@ st.set_page_config(
 # ---------------------------
 # HEADER
 # ---------------------------
-st.title("🌾 AgriDSS_AI")
+st.title("🌾 🌾 GeoAI Decision Support System Architecture (Production-style)")
 st.subheader("AI + GIS + Remote Sensing Decision Support System")
 
 # ---------------------------
