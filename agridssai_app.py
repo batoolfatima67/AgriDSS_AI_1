@@ -4,6 +4,8 @@ from modules.gis_module import render_gis_module
 from modules.weather_module import render_weather_module
 from modules.gee_ndvi import render_ndvi_module
 from modules.recommendation_engine import render_recommendation_module
+from modules.dashboard import render_dashboard
+from modules.report_generator import generate_report
 
 # Page config (must be first Streamlit command)
 st.set_page_config(
@@ -30,7 +32,9 @@ page = st.sidebar.radio(
         "GIS Viewer",
         "Weather Module",
         "NDVI (Coming Soon)",
-        "Recommendation Engine (Coming Soon)"
+        "Recommendation Engine",
+        "dashboard",
+        "Generate a Report"
     ]
 )
 
@@ -91,3 +95,16 @@ elif page == "NDVI Analysis":
 # ---------------------------
 elif page == "AI Recommendation Engine":
     render_recommendation_module()
+
+# ---------------------------
+# Dashboard
+# ---------------------------
+elif page == "Dashboard":
+    render_dashboard()
+
+# ---------------------------
+# Generate Report
+# ---------------------------
+elif page == "Generate Report":
+    generate_report()
+
