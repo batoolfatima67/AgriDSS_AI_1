@@ -1,9 +1,9 @@
 import streamlit as st
 import requests
-    
-API_KEY = "2a0c3869482067519b6719f19118aca4"
 
-def get_weather(lat, lon, api_key):
+def get_weather(lat, lon):
+
+    api_key = st.secrets["2a0c3869482067519b6719f19118aca4"]
 
     url = (
         "https://api.openweathermap.org/data/2.5/weather"
@@ -12,12 +12,8 @@ def get_weather(lat, lon, api_key):
 
     response = requests.get(url)
 
-    if response.status_code != 200:
-        return None
-
     return response.json()
-
-
+   
 def render_weather_module():
 
     st.header("🌦 Weather Module")
@@ -35,15 +31,6 @@ def render_weather_module():
     lon = user_data["longitude"]
 
     st.write("Location:", lat, lon)
-
-    # -----------------------------
-    # API KEY INPUT (SAFE FOR DEPLOYMENT)
-    # -----------------------------
-    api_key = st.text_input("Enter OpenWeather API Key", type="password")
-
-    if not api_key:
-        st.info("Enter API key to fetch weather data.")
-        return
 
     # -----------------------------
     # FETCH WEATHER
