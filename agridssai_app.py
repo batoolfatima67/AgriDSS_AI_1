@@ -17,7 +17,7 @@ st.set_page_config(
 # ---------------------------
 # HEADER
 # ---------------------------
-st.title("🌾 GeoAI Decision Support System Architecture (Production-style)")
+st.title("🌾 GeoAI Decision Support System Architecture")
 st.subheader("AI + GIS + Remote Sensing Decision Support System")
 
 # ---------------------------
@@ -32,7 +32,7 @@ page = st.sidebar.radio(
         "Input Module",
         "GIS Viewer",
         "Weather Module",
-        "NDVI (Coming Soon)",
+        "NDVI",
         "Recommendation Engine",
         "dashboard",
         "Generate a Report"
