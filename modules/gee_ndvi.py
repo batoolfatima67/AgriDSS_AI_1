@@ -1,16 +1,7 @@
 import ee
 import numpy as np
 import streamlit as st
-from modules.cache_manager import get_cache, update_cache
 
-cached_ndvi = get_cache("ndvi")
-
-if cached_ndvi is not None:
-    ndvi_value = cached_ndvi
-else:
-    ndvi_value = get_ndvi(lat, lon)
-    update_cache("ndvi", ndvi_value)
-    
 # -----------------------------
 # INITIALIZE GEE (SAFE)
 # -----------------------------
