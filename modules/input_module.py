@@ -4,51 +4,35 @@ from pathlib import Path
 
 
 @st.cache_data
-def load_tehsil_data():
+def load_data():
 
     shp_path = Path("data/pakistan_tehsil.shp")
 
-    if not shp_path.exists():
-        raise FileNotFoundError(
-            f"Shapefile not found at: {shp_path}"
-        )
-
     gdf = gpd.read_file(shp_path)
+
+    # Normalize column names (VERY IMPORTANT)
+    gdf.columns = [col.upper() for col in gdf.columns]
 
     return gdf
 
+
 def render_input_module():
 
-    st.header("📍 Farm Location Input")
+    st.header("📍 Farm Location Input (GIS)")
 
-    try:
-        gdf = load_tehsil_data()
-
-    except Exception as e:
-        st.error(f"Unable to load tehsil shapefile: {e}")
-        return
+    gdf = load_data()
 
     # -----------------------------
-    # Province Selection
+    # AUTO-DETECT COLUMNS
     # -----------------------------
-    provinces = sorted(
-        gdf["Province"].dropna().unique().tolist()
-    )
-
-    province = st.selectbox(
-        "Select Province",
-        provinces
-    )
+    district_col = [c for c in gdf.columns if "DIST" in c][0]
+    tehsil_col = [c for c in gdf.columns if "TEH" in c or "TAHS" in c or "NAME" in c][0]
 
     # -----------------------------
-    # District Selection
+    # DISTRICT SELECTION
     # -----------------------------
-    district_df = gdf[
-        gdf["Province"] == province
-    ]
-
     districts = sorted(
-        district_df["District"].dropna().unique().tolist()
+        gdf[district_col].dropna().unique().tolist()
     )
 
     district = st.selectbox(
@@ -56,15 +40,13 @@ def render_input_module():
         districts
     )
 
-    # -----------------------------
-    # Tehsil Selection
-    # -----------------------------
-    tehsil_df = district_df[
-        district_df["District"] == district
-    ]
+    district_df = gdf[gdf[district_col] == district]
 
+    # -----------------------------
+    # TEHSIL SELECTION
+    # -----------------------------
     tehsils = sorted(
-        tehsil_df["Tehsil"].dropna().unique().tolist()
+        district_df[tehsil_col].dropna().unique().tolist()
     )
 
     tehsil = st.selectbox(
@@ -72,17 +54,17 @@ def render_input_module():
         tehsils
     )
 
-    # -----------------------------
-    # Selected Tehsil Geometry
-    # -----------------------------
-    selected = tehsil_df[
-        tehsil_df["Tehsil"] == tehsil
+    selected = district_df[
+        district_df[tehsil_col] == tehsil
     ]
 
     if selected.empty:
-        st.warning("No geometry found.")
+        st.error("No spatial data found for selected tehsil")
         return
 
+    # -----------------------------
+    # GEOMETRY CENTROID (AUTO LOCATION)
+    # -----------------------------
     geometry = selected.geometry.iloc[0]
 
     centroid = geometry.centroid
@@ -90,23 +72,17 @@ def render_input_module():
     lat = centroid.y
     lon = centroid.x
 
-    st.subheader("📌 Location")
+    st.subheader("📌 Auto-Detected Farm Location")
 
     st.write(f"Latitude: {lat:.6f}")
     st.write(f"Longitude: {lon:.6f}")
 
     # -----------------------------
-    # Crop Information
+    # FARM PARAMETERS
     # -----------------------------
     crop = st.selectbox(
         "Crop",
-        [
-            "Wheat",
-            "Rice",
-            "Maize",
-            "Cotton",
-            "Sugarcane"
-        ]
+        ["Wheat", "Rice", "Maize", "Cotton", "Sugarcane"]
     )
 
     area = st.number_input(
@@ -116,33 +92,23 @@ def render_input_module():
     )
 
     irrigation = st.selectbox(
-        "Irrigation Method",
-        [
-            "Flood",
-            "Drip",
-            "Sprinkler",
-            "Canal",
-            "Rainfed"
-        ]
+        "Irrigation Type",
+        ["Flood", "Drip", "Sprinkler", "Canal", "Rainfed"]
     )
 
     # -----------------------------
-    # Save
+    # SAVE STATE
     # -----------------------------
-    if st.button("Save Farm Information"):
+    if st.button("Save Farm Data"):
 
         st.session_state.user_data = {
-
-            "province": province,
             "district": district,
             "tehsil": tehsil,
-
             "latitude": lat,
             "longitude": lon,
-
             "crop": crop,
             "area": area,
             "irrigation": irrigation
         }
 
-        st.success("Farm information saved.")
+        st.success("Farm data saved successfully 🚀")
