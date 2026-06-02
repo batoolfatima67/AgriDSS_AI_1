@@ -6,7 +6,7 @@ from pathlib import Path
 @st.cache_data
 def load_tehsil_data():
 
-    shp_path = Path("data/Punjab_Tehsils.shp")
+    shp_path = Path("data/pakistan_tehsils.shp")
 
     gdf = gpd.read_file(shp_path)
 
