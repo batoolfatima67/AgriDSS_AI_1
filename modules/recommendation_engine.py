@@ -1,6 +1,14 @@
 import streamlit as st
+from modules.cache_manager import get_cache, update_cache
 
+cached_rec = get_cache("recommendation")
 
+if cached_rec:
+    result = cached_rec
+else:
+    result = generate_recommendation(ndvi_value, weather_data, crop)
+    update_cache("recommendation", result)
+    
 def generate_recommendation(ndvi, weather, crop):
 
     recommendation = {
