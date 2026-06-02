@@ -54,6 +54,12 @@ def render_weather_module():
         st.error("Failed to fetch weather data. Check API key or internet.")
         return
 
+    st.session_state.weather_data = {
+    "temp": weather["main"]["temp"],
+    "humidity": weather["main"]["humidity"],
+    "wind": weather["wind"]["speed"]
+    } 
+    
     # -----------------------------
     # DISPLAY WEATHER DATA
     # -----------------------------
