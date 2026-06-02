@@ -1,14 +1,5 @@
 import streamlit as st
 import requests
-from modules.cache_manager import get_cache, update_cache
-
-cached_weather = get_cache("weather")
-
-if cached_weather:
-    weather_data = cached_weather
-else:
-    weather_data = get_weather(lat, lon, api_key)
-    update_cache("weather", weather_data)
     
 API_KEY = "2a0c3869482067519b6719f19118aca4"
 
