@@ -2,7 +2,6 @@ import streamlit as st
 import geopandas as gpd
 from pathlib import Path
 
-
 @st.cache_data
 def load_data():
 
@@ -10,11 +9,16 @@ def load_data():
 
     gdf = gpd.read_file(shp_path)
 
-    # Normalize column names (VERY IMPORTANT)
+    # IMPORTANT: preserve geometry first
+    geom_col = gdf.geometry.name
+
+    # normalize columns
     gdf.columns = [col.upper() for col in gdf.columns]
 
-    return gdf
+    # restore geometry explicitly
+    gdf = gdf.set_geometry(geom_col)
 
+    return gdf
 
 def render_input_module():
 
@@ -65,7 +69,11 @@ def render_input_module():
     # -----------------------------
     # GEOMETRY CENTROID (AUTO LOCATION)
     # -----------------------------
-    geometry = selected.geometry.iloc[0]
+    geometry = selected.iloc[0].geometry
+
+    selected_row = selected.iloc[0]
+
+    geometry = selected_row.geometry
 
     centroid = geometry.centroid
 
