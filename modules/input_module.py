@@ -62,6 +62,11 @@ def render_input_module():
         district_df[tehsil_col] == tehsil
     ]
 
+    # 🔥 ADD DEBUG HERE (TEMPORARY)
+    st.write("Geometry type:", type(selected))
+    st.write("Columns:", selected.columns)
+    st.write("Has geometry:", selected.geometry.name if hasattr(selected, "geometry") else "NO")
+    
     if selected.empty:
         st.error("No spatial data found for selected tehsil")
         return
