@@ -3,7 +3,9 @@ import requests
 
 def get_weather(lat, lon):
 
-    api_key = st.secrets["2a0c3869482067519b6719f19118aca4"]
+    OPENWEATHER_API_KEY = "2a0c3869482067519b6719f19118aca4"
+    
+    api_key = st.secrets["OPENWEATHER_API_KEY"]
 
     url = (
         "https://api.openweathermap.org/data/2.5/weather"
