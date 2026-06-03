@@ -35,7 +35,7 @@ def render_weather_module():
     # -----------------------------
     # FETCH WEATHER
     # -----------------------------
-    weather = get_weather(lat, lon, api_key)
+    weather = get_weather(lat, lon)
 
     if weather is None:
         st.error("Failed to fetch weather data. Check API key or internet.")
