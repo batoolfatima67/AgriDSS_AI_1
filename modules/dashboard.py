@@ -4,7 +4,7 @@ import folium
 from streamlit_folium import st_folium
 import numpy as np
 import matplotlib.pyplot as plt
-
+import pandas as pd
 
 def render_dashboard():
 
@@ -61,11 +61,6 @@ def render_dashboard():
     st.success("NDVI section reached ✔")
 
     # ---------------- NDVI LAYER ----------------
-    st.subheader("🌱 NDVI Layer (Demo)")
-
-    import pandas as pd
-    import numpy as np
-
     st.subheader("🌱 NDVI Layer (Demo)")
 
     ndvi_values = np.random.uniform(0.2, 0.9, 100)
