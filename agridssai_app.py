@@ -7,7 +7,7 @@ from modules.report_generator import generate_report
 
 st.set_page_config(page_title="AgriDSS_AI", layout="wide")
 
-st.sidebar.title("🌾 AgriDSS_AI")
+st.sidebar.title("🌾 AI-Powered Agriculture Decision Support System (AgriDSS_AI)")
 
 page = st.sidebar.radio(
     "Navigation",
