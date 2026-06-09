@@ -1,38 +1,39 @@
 import streamlit as st
 import geopandas as gpd
-import numpy as np
 import folium
 from streamlit_folium import st_folium
+import numpy as np
+
+# GEE NDVI IMPORT
 from modules.gee_ndvi import get_ndvi
 
 
-
 # -------------------------------------------------
-# FIXED CLASSIFICATION FUNCTION (STABLE)
+# SAFE CLASSIFICATION FUNCTION
 # -------------------------------------------------
-def get_class_color(seed_value):
-    np.random.seed(seed_value)
+def get_class_color(seed):
+    np.random.seed(seed)
     r = np.random.random()
 
     if r < 0.25:
         return "red"      # temperature / stress
     elif r < 0.55:
-        return "green"    # healthy vegetation
+        return "green"    # vegetation
     elif r < 0.80:
         return "yellow"   # poor vegetation
     else:
-        return "blue"     # water / canals
+        return "blue"     # water
 
 
 # -------------------------------------------------
-# MAIN DASHBOARD FUNCTION
+# MAIN DASHBOARD
 # -------------------------------------------------
 def render_dashboard():
 
-    st.header("🗺 AgriDSS_AI Smart Geo Dashboard")
+    st.header("🗺 AgriDSS_AI Geo Dashboard (GEE Enabled)")
 
     # -----------------------------
-    # SESSION DATA (FROM FARM INPUT)
+    # FARM INPUT
     # -----------------------------
     user_data = st.session_state.get("user_data")
 
@@ -47,25 +48,17 @@ def render_dashboard():
     st.write(f"District: {district}")
     st.write(f"Tehsil: {tehsil}")
 
-    st.subheader("🌍 GEE NDVI Processing")
-
-try:
-    ndvi_image = get_ndvi(geom)
-    st.success("NDVI computed successfully (GEE)")
-except Exception as e:
-    st.error(f"GEE Error: {e}")
-
     # -----------------------------
     # LOAD SHAPEFILE
     # -----------------------------
     try:
         gdf = gpd.read_file("data/pakistan_tehsil.shp")
     except Exception as e:
-        st.error(f"Error loading shapefile: {e}")
+        st.error(f"Shapefile error: {e}")
         return
 
     # -----------------------------
-    # AUTO-DETECT COLUMNS
+    # AUTO DETECT COLUMNS
     # -----------------------------
     district_col = None
     tehsil_col = None
@@ -77,12 +70,12 @@ except Exception as e:
             tehsil_col = col
 
     if district_col is None or tehsil_col is None:
-        st.error("District/Tehsil columns not found in shapefile")
+        st.error("District/Tehsil columns not found.")
         st.write(gdf.columns.tolist())
         return
 
     # -----------------------------
-    # FILTER SELECTED AREA
+    # FILTER LOCATION
     # -----------------------------
     selected = gdf[
         (gdf[district_col] == district) &
@@ -90,7 +83,7 @@ except Exception as e:
     ]
 
     if selected.empty:
-        st.error("Selected location not found in shapefile")
+        st.error("Selected location not found in shapefile.")
         return
 
     geom = selected.geometry.iloc[0]
@@ -129,7 +122,7 @@ except Exception as e:
             ).add_to(m)
 
     # -----------------------------
-    # TEHSIL BOUNDARY
+    # BOUNDARY LAYER
     # -----------------------------
     folium.GeoJson(
         selected,
@@ -141,10 +134,25 @@ except Exception as e:
     ).add_to(m)
 
     # -----------------------------
-    # DISPLAY MAP
+    # MAP DISPLAY
     # -----------------------------
     st.subheader("🗺 Classified Geo Map")
     st_folium(m, width=1200, height=600)
+
+    # -----------------------------
+    # 🌍 GEE NDVI PROCESSING
+    # -----------------------------
+    st.subheader("🌍 GEE NDVI Processing")
+
+    try:
+        ndvi_image = get_ndvi(geom)
+        st.success("NDVI computed successfully (GEE)")
+
+        # simple NDVI preview (placeholder)
+        st.write("NDVI Object:", ndvi_image)
+
+    except Exception as e:
+        st.error(f"GEE Error: {e}")
 
     # -----------------------------
     # LEGEND
@@ -156,6 +164,6 @@ except Exception as e:
         🔴 Red → High Temperature / Stress  
         🟢 Green → Healthy Vegetation  
         🟡 Yellow → Poor Vegetation  
-        🔵 Blue → Water / Canals / Rivers
+        🔵 Blue → Water / Canals / Rivers  
         """
     )
