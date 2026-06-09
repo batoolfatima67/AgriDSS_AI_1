@@ -2,19 +2,9 @@ import streamlit as st
 import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
-import ee
 
 from modules.gee_ndvi import get_ndvi_image
-
-
-# -----------------------------
-# SAFE GEE INIT
-# -----------------------------
-def init_gee():
-    try:
-        ee.Initialize()
-    except Exception:
-        pass
+import geemap.foliumap as geemap
 
 
 def render_dashboard():
@@ -22,7 +12,7 @@ def render_dashboard():
     st.header("🗺 AgriDSS_AI - Satellite Intelligence Dashboard")
 
     # -----------------------------
-    # FARM INPUT
+    # FARM INPUT DATA
     # -----------------------------
     user_data = st.session_state.get("user_data")
 
@@ -33,7 +23,7 @@ def render_dashboard():
     district = user_data.get("district")
     tehsil = user_data.get("tehsil")
 
-    st.subheader("📍 Selected Location")
+    st.subheader("📍 Selected Farm Location")
     st.write(f"District: {district}")
     st.write(f"Tehsil: {tehsil}")
 
@@ -43,11 +33,11 @@ def render_dashboard():
     try:
         gdf = gpd.read_file("data/pakistan_tehsil.shp")
     except Exception as e:
-        st.error(f"Shapefile error: {e}")
+        st.error(f"Error loading shapefile: {e}")
         return
 
     # -----------------------------
-    # AUTO COLUMN DETECTION
+    # AUTO-DETECT COLUMNS
     # -----------------------------
     district_col = None
     tehsil_col = None
@@ -59,12 +49,12 @@ def render_dashboard():
             tehsil_col = col
 
     if district_col is None or tehsil_col is None:
-        st.error("District/Tehsil columns not found")
+        st.error("District/Tehsil columns not found in shapefile")
         st.write(gdf.columns.tolist())
         return
 
     # -----------------------------
-    # FILTER AREA
+    # FILTER SELECTED AREA
     # -----------------------------
     selected = gdf[
         (gdf[district_col] == district) &
@@ -72,7 +62,7 @@ def render_dashboard():
     ]
 
     if selected.empty:
-        st.error("Selected area not found")
+        st.error("Selected area not found in dataset")
         return
 
     geom = selected.geometry.iloc[0]
@@ -88,37 +78,22 @@ def render_dashboard():
     )
 
     # -----------------------------
-    # INIT GEE
+    # REAL GEE NDVI LAYER
     # -----------------------------
-    init_gee()
-
     try:
-        # -----------------------------
-        # GET NDVI IMAGE FROM GEE
-        # -----------------------------
         ndvi_img = get_ndvi_image(geom)
 
-        # -----------------------------
-        # CONVERT TO TILE LAYER (NO GEEMAP)
-        # -----------------------------
-        map_id_dict = ee.Image(ndvi_img).getMapId({
+        vis_params = {
             "min": 0,
             "max": 1,
             "palette": ["red", "yellow", "green"]
-        })
+        }
 
-        tile_url = map_id_dict["tile_fetcher"].url_format
-
-        folium.raster_layers.TileLayer(
-            tiles=tile_url,
-            name="NDVI",
-            overlay=True,
-            control=True,
-            attr="Google Earth Engine"
-        ).add_to(m)
+        ndvi_layer = geemap.ee_tile_layer(ndvi_img, vis_params, "NDVI")
+        ndvi_layer.add_to(m)
 
     except Exception as e:
-        st.error(f"NDVI loading error: {e}")
+        st.error(f"GEE NDVI Error: {e}")
 
     # -----------------------------
     # TEHSIL BOUNDARY
@@ -133,20 +108,20 @@ def render_dashboard():
     ).add_to(m)
 
     # -----------------------------
-    # DISPLAY MAP
+    # SHOW MAP
     # -----------------------------
-    st.subheader("🌍 NDVI Satellite Map (GEE)")
+    st.subheader("🌍 Satellite NDVI Map (GEE)")
     st_folium(m, width=1200, height=600)
 
     # -----------------------------
     # LEGEND
     # -----------------------------
-    st.subheader("🧭 NDVI Legend")
+    st.subheader("🧭 Legend")
 
     st.markdown(
         """
-        🔴 Red → Low Vegetation (Stress / Bare Soil)  
+        🟢 Green → High Vegetation (Healthy Crops)  
         🟡 Yellow → Moderate Vegetation  
-        🟢 Green → Healthy Crops / Dense Vegetation  
+        🔴 Red → Low Vegetation / Stress Areas  
         """
     )
