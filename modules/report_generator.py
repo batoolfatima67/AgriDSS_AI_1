@@ -1,9 +1,9 @@
 import streamlit as st
-from datetime import datetime
+
 
 def generate_report():
 
-    st.title("📄 Farm Decision Report")
+    st.title("📄 Farm Report")
 
     weather = st.session_state.get("weather_data")
     ndvi = st.session_state.get("ndvi_value")
@@ -13,52 +13,49 @@ def generate_report():
         st.warning("No report available. Run analysis first.")
         return
 
-    # ---------------- HEADER ----------------
-    st.subheader("🌾 Farm Summary")
-    st.write(f"District: {data['district']}")
-    st.write(f"Tehsil: {data['tehsil']}")
-    st.write(f"Crop: {data['crop']}")
+    # ---------------- SINGLE REPORT CONTAINER ----------------
+    with st.container():
 
-    st.divider()
+        st.markdown("### 🌾 Farm Information")
+        st.markdown(f"""
+        - **District:** {data['district']}
+        - **Tehsil:** {data['tehsil']}
+        - **Crop:** {data['crop']}
+        """)
 
-    # ---------------- WEATHER SECTION ----------------
-    st.subheader("🌦 Weather Conditions")
+        st.markdown("---")
 
-    st.write(f"Temperature: {weather['temperature']} °C")
-    st.write(f"Humidity: {weather['humidity']} %")
-    st.write(f"Condition: {weather['condition']}")
+        st.markdown("### 🌦 Weather Summary")
+        st.markdown(f"""
+        - Temperature: **{weather['temperature']} °C**
+        - Humidity: **{weather['humidity']} %**
+        - Condition: **{weather['condition']}**
+        """)
 
-    st.divider()
+        st.markdown("---")
 
-    # ---------------- NDVI SECTION ----------------
-    st.subheader("🌱 Vegetation Status (NDVI)")
+        st.markdown("### 🌱 Vegetation Health (NDVI)")
+        st.markdown(f"**NDVI Value:** {ndvi}")
 
-    st.metric("NDVI Value", ndvi)
+        if ndvi > 0.6:
+            st.success("Crop Condition: Healthy 🟢")
+            status = "Good"
+        elif ndvi > 0.3:
+            st.warning("Crop Condition: Moderate 🟡")
+            status = "Moderate"
+        else:
+            st.error("Crop Condition: Poor 🔴")
+            status = "Poor"
 
-    if ndvi > 0.6:
-        st.success("Crop condition: Healthy 🟢")
-        status = "Good"
-    elif ndvi > 0.3:
-        st.warning("Crop condition: Moderate 🟡")
-        status = "Moderate"
-    else:
-        st.error("Crop condition: Poor 🔴")
-        status = "Poor"
+        st.markdown("---")
 
-    st.divider()
+        st.markdown("### 🧠 Recommendation")
 
-    # ---------------- FINAL DECISION ----------------
-    st.subheader("🧠 Final Recommendation")
+        if status == "Good":
+            st.info("No major action required. Maintain normal irrigation.")
+        elif status == "Moderate":
+            st.info("Slight increase in irrigation recommended.")
+        else:
+            st.info("Urgent attention required: crop stress detected.")
 
-    if status == "Good":
-        st.info("Normal irrigation is sufficient. Monitor regularly.")
-    elif status == "Moderate":
-        st.info("Increase irrigation slightly and monitor soil moisture.")
-    else:
-        st.info("Urgent action required: improve irrigation and check crop stress.")
-
-    st.divider()
-
-    # ---------------- FOOTER ----------------
-    st.success("Report Generated Successfully ✔")
-
+        st.markdown("---")
