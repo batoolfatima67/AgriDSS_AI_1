@@ -1,63 +1,52 @@
 import streamlit as st
 
-from modules.weather_module import get_weather
-from modules.gee_ndvi import get_ndvi
-from modules.recommendation_engine import generate_recommendation
 
+def run_full_analysis():
 
-# -----------------------------
-# RUN FULL AI ANALYSIS PIPELINE
-# -----------------------------
-def run_full_analysis(lat, lon, crop):
+    st.header("🚀 Full Analysis Engine")
 
-    st.info("🚀 Running AgriDSS AI Analysis Pipeline...")
+    data = st.session_state.get("user_data")
 
-    # -------------------------
-    # STEP 1: WEATHER
-    # -------------------------
-    weather = get_weather(lat, lon)
+    if not data:
+        st.warning("Please enter farm data first")
+        return
 
-    if weather is None:
-        st.warning("Weather data not available. Using fallback values.")
-        weather = {
-            "temperature": {"value": 30},
-            "humidity": {"value": 50},
-            "wind_speed": {"value": 5},
-            "condition": "unknown"
-        }
+    lat = data["latitude"]
+    lon = data["longitude"]
+    crop = data["crop"]
 
-    st.session_state.weather = weather
+    st.subheader("Farm")
+    st.write(data["district"], data["tehsil"])
 
+    # WEATHER
+    st.subheader("Weather")
 
-    # -------------------------
-    # STEP 2: NDVI
-    # -------------------------
-    ndvi_value = get_ndvi(lat, lon)
+    if "weather_data" not in st.session_state:
+        from modules.weather_module import get_weather
+        st.session_state.weather_data = get_weather(lat, lon)
 
-    if ndvi_value is None:
-        st.warning("NDVI not available. Using default value.")
-        ndvi_value = 0.4
+    weather = st.session_state.weather_data
+    st.write(weather)
 
-    st.session_state.ndvi_value = ndvi_value
+    # NDVI
+    st.subheader("NDVI")
 
+    if "ndvi_value" not in st.session_state:
+        from modules.gee_ndvi import get_ndvi
+        st.session_state.ndvi_value = get_ndvi(lat, lon)
 
-    # -------------------------
-    # STEP 3: AI RECOMMENDATION
-    # -------------------------
-    recommendation = generate_recommendation(
-        ndvi_value,
-        weather,
-        crop
-    )
+    ndvi = st.session_state.ndvi_value
+    st.write(ndvi)
 
-    st.session_state.recommendation = recommendation
+    # AI
+    st.subheader("Recommendation")
 
+    if "recommendation" not in st.session_state:
+        from modules.recommendation_engine import generate_recommendation
+        st.session_state.recommendation = generate_recommendation(ndvi, weather, crop)
 
-    # -------------------------
-    # STEP 4: RETURN RESULTS
-    # -------------------------
-    return {
-        "weather": weather,
-        "ndvi": ndvi_value,
-        "recommendation": recommendation
-    }
+    rec = st.session_state.recommendation
+
+    st.success(rec["status"])
+    st.write(rec["irrigation"])
+    st.write(rec["fertilizer"])
