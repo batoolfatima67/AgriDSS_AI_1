@@ -34,12 +34,16 @@ def get_ndvi(lat, lon):
     ndvi = image.normalizedDifference(["B8", "B4"]).rename("NDVI")
 
     value = ndvi.reduceRegion(
-        reducer=ee.Reducer.mean(),
-        geometry=point,
-        scale=10
-    ).get("NDVI").getInfo()
+    reducer=ee.Reducer.mean(),
+    geometry=point,
+    scale=10,
+    maxPixels=1e9
+    ).get("NDVI")
 
-    return value
+    if value is None:
+        return None
+
+        return value.getInfo()
 
 
 # -----------------------------
@@ -66,11 +70,11 @@ def render_ndvi_module():
 
             ndvi_value = get_ndvi(lat, lon)
 
-            if ndvi_value is None:
-                st.error("NDVI could not be calculated.")
-                return
-            # Save for other modules
-            
+    if ndvi_value is None:
+             st.error("NDVI could not be calculated.")
+             return
+
+            # Save for Recommendation Engine
             st.session_state.ndvi_value = ndvi_value
 
             st.success("NDVI Computed Successfully")
