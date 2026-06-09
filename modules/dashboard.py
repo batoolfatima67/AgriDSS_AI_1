@@ -2,9 +2,23 @@ import streamlit as st
 import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
-
 from modules.gee_ndvi import get_ndvi_image
-import geemap.foliumap as geemap
+
+import ee
+
+# ensure initialized safely
+try:
+    ee.Initialize()
+except:
+    pass
+
+
+
+
+
+
+
+
 
 
 def render_dashboard():
@@ -94,6 +108,33 @@ def render_dashboard():
 
     except Exception as e:
         st.error(f"GEE NDVI Error: {e}")
+
+    # -----------------------------
+    # GET NDVI IMAGE
+    # -----------------------------
+    ndvi_img = get_ndvi_image(geom)
+
+    # -----------------------------
+    # GET TILE LAYER (NO GEEMAP)
+    # -----------------------------
+    map_id_dict = ee.Image(ndvi_img).getMapId({
+       "min": 0,
+       "max": 1,
+       "palette": ["red", "yellow", "green"]
+    })
+
+tile_url = map_id_dict["tile_fetcher"].url_format
+
+# -----------------------------
+# ADD TO FOLIUM
+# -----------------------------
+folium.raster_layers.TileLayer(
+    tiles=tile_url,
+    attr="Google Earth Engine",
+    name="NDVI",
+    overlay=True,
+    control=True
+).add_to(m)
 
     # -----------------------------
     # TEHSIL BOUNDARY
