@@ -2,6 +2,8 @@ import streamlit as st
 import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def render_dashboard():
@@ -19,36 +21,23 @@ def render_dashboard():
 
     gdf = gpd.read_file("data/pakistan_tehsil.shp")
 
-    # -------------------------------
-    # AUTO-DETECT COLUMNS (NO ERROR)
-    # -------------------------------
-    possible_district_cols = ["District", "DISTRICT", "district"]
-    possible_tehsil_cols = ["Tehsil", "TEHSIL", "tehsil"]
+    district_col = "DISTRICT"
+    tehsil_col = "TEHSIL"
 
-    district_col = next((col for col in possible_district_cols if col in gdf.columns), None)
-    tehsil_col = next((col for col in possible_tehsil_cols if col in gdf.columns), None)
-
-    if district_col is None or tehsil_col is None:
-        st.error("District/Tehsil columns not found in shapefile")
-        st.write(gdf.columns.tolist())
-        return
-
-    # -------------------------------
-    # FILTER DATA
-    # -------------------------------
     selected = gdf[
         (gdf[district_col] == district) &
         (gdf[tehsil_col] == tehsil)
     ]
 
     if selected.empty:
-        st.error("Selected location not found in shapefile")
+        st.error("Location not found")
         return
 
-    # -------------------------------
-    # MAP CENTER
-    # -------------------------------
-    center = selected.geometry.centroid.iloc[0]
+    geom = selected.geometry.iloc[0]
+    minx, miny, maxx, maxy = geom.bounds
+
+    # ---------------- MAP ----------------
+    center = geom.centroid
 
     m = folium.Map(
         location=[center.y, center.x],
@@ -66,4 +55,26 @@ def render_dashboard():
         }
     ).add_to(m)
 
-    st_folium(m, width=1200, height=600)
+    st.subheader("🗺 Map View")
+    st_folium(m, width=1200, height=500)
+
+    # ---------------- NDVI LAYER ----------------
+    st.subheader("🌱 NDVI Layer (Demo)")
+
+    rows, cols = 50, 50
+    ndvi = np.random.uniform(0.2, 0.9, (rows, cols))
+
+    fig, ax = plt.subplots()
+
+    img = ax.imshow(
+        ndvi,
+        cmap="RdYlGn",
+        extent=[minx, maxx, miny, maxy],
+        alpha=0.6
+    )
+
+    plt.colorbar(img, ax=ax)
+
+    ax.set_title("NDVI Distribution (Simulated)")
+
+    st.pyplot(fig)
