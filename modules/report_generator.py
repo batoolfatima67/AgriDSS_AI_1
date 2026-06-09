@@ -41,40 +41,33 @@ def generate_report():
 Report Date:
 {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
---------------------------------------------------
-FARM INFORMATION
---------------------------------------------------
+------------FARM INFORMATION--------------
+
 
 District : {data.get('district', 'N/A')}
 Tehsil   : {data.get('tehsil', 'N/A')}
 Crop     : {data.get('crop', 'N/A')}
 Area     : {data.get('area', 'N/A')}
 
---------------------------------------------------
-WEATHER ANALYSIS
---------------------------------------------------
+--------------WEATHER ANALYSIS-------------
 
 Temperature : {temperature} °C
 Humidity    : {humidity} %
 Condition   : {condition}
 
---------------------------------------------------
-NDVI ANALYSIS
---------------------------------------------------
+---------------NDVI ANALYSIS--------------
+
 
 NDVI Value  : {ndvi}
 Status      : {ndvi_status}
 
---------------------------------------------------
-SUMMARY
---------------------------------------------------
+
+---------------SUMMARY--------------------
+
 
 This report was generated automatically by
 AgriDSS_AI Decision Support System.
 
-==================================================
-END OF REPORT
-==================================================
 """
 
     st.text_area(
