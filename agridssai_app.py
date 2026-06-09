@@ -3,9 +3,6 @@ import streamlit as st
 from modules.input_module import render_input_module
 from modules.analysis_engine import run_full_analysis
 from modules.report_generator import generate_report
-from modules.analysis_engine import run_full_analysis
-
-run_full_analysis()
 
 st.set_page_config(page_title="AgriDSS_AI", layout="wide")
 
@@ -13,7 +10,7 @@ st.sidebar.title("🌾 AgriDSS_AI")
 
 page = st.sidebar.radio(
     "Navigation",
-    ["Farm Input", "Run Analysis", "Dashboard", "Report"]
+    ["Farm Input", "Run Analysis", "Report"]
 )
 
 if page == "Farm Input":
@@ -21,9 +18,6 @@ if page == "Farm Input":
 
 elif page == "Run Analysis":
     run_full_analysis()
-
-elif page == "Dashboard":
-    render_dashboard()
 
 elif page == "Report":
     generate_report()
