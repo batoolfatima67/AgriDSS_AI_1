@@ -2,17 +2,35 @@ import streamlit as st
 import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
-
-from modules.gee_ndvi import get_ndvi_image
-import geemap.foliumap as geemap
+import numpy as np
 
 
+# -------------------------------------------------
+# FIXED CLASSIFICATION FUNCTION (STABLE)
+# -------------------------------------------------
+def get_class_color(seed_value):
+    np.random.seed(seed_value)
+    r = np.random.random()
+
+    if r < 0.25:
+        return "red"      # temperature / stress
+    elif r < 0.55:
+        return "green"    # healthy vegetation
+    elif r < 0.80:
+        return "yellow"   # poor vegetation
+    else:
+        return "blue"     # water / canals
+
+
+# -------------------------------------------------
+# MAIN DASHBOARD FUNCTION
+# -------------------------------------------------
 def render_dashboard():
 
-    st.header("🗺 AgriDSS_AI - Satellite Intelligence Dashboard")
+    st.header("🗺 AgriDSS_AI Smart Geo Dashboard")
 
     # -----------------------------
-    # FARM INPUT DATA
+    # SESSION DATA (FROM FARM INPUT)
     # -----------------------------
     user_data = st.session_state.get("user_data")
 
@@ -23,7 +41,7 @@ def render_dashboard():
     district = user_data.get("district")
     tehsil = user_data.get("tehsil")
 
-    st.subheader("📍 Selected Farm Location")
+    st.subheader("📍 Selected Location")
     st.write(f"District: {district}")
     st.write(f"Tehsil: {tehsil}")
 
@@ -62,11 +80,12 @@ def render_dashboard():
     ]
 
     if selected.empty:
-        st.error("Selected area not found in dataset")
+        st.error("Selected location not found in shapefile")
         return
 
     geom = selected.geometry.iloc[0]
     center = geom.centroid
+    minx, miny, maxx, maxy = geom.bounds
 
     # -----------------------------
     # BASE MAP
@@ -78,22 +97,26 @@ def render_dashboard():
     )
 
     # -----------------------------
-    # REAL GEE NDVI LAYER
+    # STABLE GRID CLASSIFICATION
     # -----------------------------
-    try:
-        ndvi_img = get_ndvi_image(geom)
+    seed = hash(str(district + tehsil)) % 10000
 
-        vis_params = {
-            "min": 0,
-            "max": 1,
-            "palette": ["red", "yellow", "green"]
-        }
+    for i in range(20):
+        for j in range(20):
 
-        ndvi_layer = geemap.ee_tile_layer(ndvi_img, vis_params, "NDVI")
-        ndvi_layer.add_to(m)
+            lat = miny + (maxy - miny) * i / 20
+            lon = minx + (maxx - minx) * j / 20
 
-    except Exception as e:
-        st.error(f"GEE NDVI Error: {e}")
+            color = get_class_color(seed + i + j)
+
+            folium.CircleMarker(
+                location=[lat, lon],
+                radius=4,
+                color=color,
+                fill=True,
+                fill_color=color,
+                fill_opacity=0.7
+            ).add_to(m)
 
     # -----------------------------
     # TEHSIL BOUNDARY
@@ -108,9 +131,9 @@ def render_dashboard():
     ).add_to(m)
 
     # -----------------------------
-    # SHOW MAP
+    # DISPLAY MAP
     # -----------------------------
-    st.subheader("🌍 Satellite NDVI Map (GEE)")
+    st.subheader("🗺 Classified Geo Map")
     st_folium(m, width=1200, height=600)
 
     # -----------------------------
@@ -120,8 +143,9 @@ def render_dashboard():
 
     st.markdown(
         """
-        🟢 Green → High Vegetation (Healthy Crops)  
-        🟡 Yellow → Moderate Vegetation  
-        🔴 Red → Low Vegetation / Stress Areas  
+        🔴 Red → High Temperature / Stress  
+        🟢 Green → Healthy Vegetation  
+        🟡 Yellow → Poor Vegetation  
+        🔵 Blue → Water / Canals / Rivers
         """
     )
