@@ -1,8 +1,10 @@
 import streamlit as st
 import geopandas as gpd
+import numpy as np
 import folium
 from streamlit_folium import st_folium
-import numpy as np
+from modules.gee_ndvi import get_ndvi
+
 
 
 # -------------------------------------------------
@@ -44,6 +46,14 @@ def render_dashboard():
     st.subheader("📍 Selected Location")
     st.write(f"District: {district}")
     st.write(f"Tehsil: {tehsil}")
+
+    st.subheader("🌍 GEE NDVI Processing")
+
+try:
+    ndvi_image = get_ndvi(geom)
+    st.success("NDVI computed successfully (GEE)")
+except Exception as e:
+    st.error(f"GEE Error: {e}")
 
     # -----------------------------
     # LOAD SHAPEFILE
