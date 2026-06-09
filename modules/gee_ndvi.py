@@ -1,21 +1,32 @@
 import ee
 
-# Initialize once
-try:
-    ee.Initialize()
-except Exception:
-    ee.Authenticate()
-    ee.Initialize()
+# -----------------------------
+# SAFE INITIALIZATION ONLY
+# -----------------------------
+def initialize_gee():
+
+    try:
+        ee.Initialize()
+    except Exception:
+        # In Streamlit Cloud, we do NOT authenticate here
+        # Authentication must be done locally only
+        raise Exception(
+            "Google Earth Engine not initialized. "
+            "Run ee.Initialize() locally first."
+        )
 
 
+# -----------------------------
+# NDVI FUNCTION (SAFE)
+# -----------------------------
 def get_ndvi_image(geometry):
 
-    # Convert shapefile geometry to GEE object
+    initialize_gee()
+
     coords = geometry.__geo_interface__["coordinates"]
 
     region = ee.Geometry.Polygon(coords)
 
-    # Sentinel-2 image collection
     collection = (
         ee.ImageCollection("COPERNICUS/S2_SR")
         .filterBounds(region)
@@ -24,9 +35,6 @@ def get_ndvi_image(geometry):
         .median()
     )
 
-    # NDVI calculation
-    ndvi = collection.normalizedDifference(
-        ["B8", "B4"]
-    ).rename("NDVI")
+    ndvi = collection.normalizedDifference(["B8", "B4"]).rename("NDVI")
 
     return ndvi.clip(region)
