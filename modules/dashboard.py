@@ -1,10 +1,8 @@
 import streamlit as st
-import random
 import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
-from modules.gee_ndvi import get_ndvi
-
+import random
 
 
 def render_dashboard():
@@ -143,30 +141,3 @@ def render_dashboard():
         🔵 Blue → Water Bodies (Canals/Rivers)
         """
     )
-
-st.subheader("🌱 Real Sentinel-2 NDVI (Google Earth Engine)")
-
-try:
-    ndvi_img, region = get_ndvi(geom)
-
-    import geemap.foliumap as geemap
-
-    Map = geemap.Map()
-
-    Map.centerObject(region, 10)
-
-    vis_params = {
-        "min": 0,
-        "max": 1,
-        "palette": ["red", "yellow", "green"]
-    }
-
-    Map.addLayer(ndvi_img, vis_params, "NDVI")
-
-    Map.to_streamlit(height=500)
-
-    st.success("Real NDVI loaded from Sentinel-2 ✔")
-
-except Exception as e:
-    st.error("NDVI loading failed (check Earth Engine setup)")
-    st.write(str(e))
