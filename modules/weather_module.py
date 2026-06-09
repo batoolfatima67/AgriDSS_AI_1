@@ -4,11 +4,16 @@ import requests
 
 def get_weather(lat, lon):
 
-    api_key = st.secrets["OPENWEATHER_API_KEY"]
+    api_key = st.secrets["2a0c3869482067519b6719f19118aca4"]
 
     url = (
-        f"https://api.openweathermap.org/data/2.5/weather"
+        "https://api.openweathermap.org/data/2.5/weather"
         f"?lat={lat}&lon={lon}&appid={api_key}&units=metric"
     )
 
-    return requests.get(url).json()
+    response = requests.get(url, timeout=10)
+
+    if response.status_code != 200:
+        return {"error": "Weather API failed"}
+
+    return response.json()
