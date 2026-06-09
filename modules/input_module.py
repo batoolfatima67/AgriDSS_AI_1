@@ -46,16 +46,15 @@ def render_input_module():
         st.error("No spatial data found")
         return
 
-    # 🔥 SAFE GEOMETRY ACCESS (FINAL FIX)
     # SAFE geometry access (works in Streamlit + GeoPandas)
-    try:
+try:
     geometry = selected.geometry.iloc[0]
-    except:
+except:
     # fallback method
     geometry = selected.iloc[0].geometry
 
     centroid = geometry.centroid
-
+    
     lat = float(centroid.y)
     lon = float(centroid.x)
 
