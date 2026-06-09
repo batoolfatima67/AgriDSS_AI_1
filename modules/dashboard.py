@@ -2,22 +2,27 @@ import streamlit as st
 import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
-from modules.gee_ndvi import get_ndvi_image
-
 import ee
 
-# ensure initialized safely
-try:
-    ee.Initialize()
-except:
-    pass
+from modules.gee_ndvi import get_ndvi_image
+
+
+# -----------------------------
+# SAFE GEE INIT
+# -----------------------------
+def init_gee():
+    try:
+        ee.Initialize()
+    except Exception:
+        pass
+
 
 def render_dashboard():
 
     st.header("🗺 AgriDSS_AI - Satellite Intelligence Dashboard")
 
     # -----------------------------
-    # FARM INPUT DATA
+    # FARM INPUT
     # -----------------------------
     user_data = st.session_state.get("user_data")
 
@@ -28,7 +33,7 @@ def render_dashboard():
     district = user_data.get("district")
     tehsil = user_data.get("tehsil")
 
-    st.subheader("📍 Selected Farm Location")
+    st.subheader("📍 Selected Location")
     st.write(f"District: {district}")
     st.write(f"Tehsil: {tehsil}")
 
@@ -38,11 +43,11 @@ def render_dashboard():
     try:
         gdf = gpd.read_file("data/pakistan_tehsil.shp")
     except Exception as e:
-        st.error(f"Error loading shapefile: {e}")
+        st.error(f"Shapefile error: {e}")
         return
 
     # -----------------------------
-    # AUTO-DETECT COLUMNS
+    # AUTO COLUMN DETECTION
     # -----------------------------
     district_col = None
     tehsil_col = None
@@ -54,12 +59,12 @@ def render_dashboard():
             tehsil_col = col
 
     if district_col is None or tehsil_col is None:
-        st.error("District/Tehsil columns not found in shapefile")
+        st.error("District/Tehsil columns not found")
         st.write(gdf.columns.tolist())
         return
 
     # -----------------------------
-    # FILTER SELECTED AREA
+    # FILTER AREA
     # -----------------------------
     selected = gdf[
         (gdf[district_col] == district) &
@@ -67,7 +72,7 @@ def render_dashboard():
     ]
 
     if selected.empty:
-        st.error("Selected area not found in dataset")
+        st.error("Selected area not found")
         return
 
     geom = selected.geometry.iloc[0]
@@ -83,49 +88,37 @@ def render_dashboard():
     )
 
     # -----------------------------
-    # REAL GEE NDVI LAYER
+    # INIT GEE
     # -----------------------------
+    init_gee()
+
     try:
+        # -----------------------------
+        # GET NDVI IMAGE FROM GEE
+        # -----------------------------
         ndvi_img = get_ndvi_image(geom)
 
-        vis_params = {
+        # -----------------------------
+        # CONVERT TO TILE LAYER (NO GEEMAP)
+        # -----------------------------
+        map_id_dict = ee.Image(ndvi_img).getMapId({
             "min": 0,
             "max": 1,
             "palette": ["red", "yellow", "green"]
-        }
+        })
 
-        ndvi_layer = geemap.ee_tile_layer(ndvi_img, vis_params, "NDVI")
-        ndvi_layer.add_to(m)
+        tile_url = map_id_dict["tile_fetcher"].url_format
+
+        folium.raster_layers.TileLayer(
+            tiles=tile_url,
+            name="NDVI",
+            overlay=True,
+            control=True,
+            attr="Google Earth Engine"
+        ).add_to(m)
 
     except Exception as e:
-        st.error(f"GEE NDVI Error: {e}")
-
-    # -----------------------------
-    # GET NDVI IMAGE
-    # -----------------------------
-    ndvi_img = get_ndvi_image(geom)
-
-    # -----------------------------
-    # GET TILE LAYER (NO GEEMAP)
-    # -----------------------------
-    map_id_dict = ee.Image(ndvi_img).getMapId({
-       "min": 0,
-       "max": 1,
-       "palette": ["red", "yellow", "green"]
-    })
-
-tile_url = map_id_dict["tile_fetcher"].url_format
-
-# -----------------------------
-# ADD TO FOLIUM
-# -----------------------------
-folium.raster_layers.TileLayer(
-    tiles=tile_url,
-    attr="Google Earth Engine",
-    name="NDVI",
-    overlay=True,
-    control=True
-).add_to(m)
+        st.error(f"NDVI loading error: {e}")
 
     # -----------------------------
     # TEHSIL BOUNDARY
@@ -140,20 +133,20 @@ folium.raster_layers.TileLayer(
     ).add_to(m)
 
     # -----------------------------
-    # SHOW MAP
+    # DISPLAY MAP
     # -----------------------------
-    st.subheader("🌍 Satellite NDVI Map (GEE)")
+    st.subheader("🌍 NDVI Satellite Map (GEE)")
     st_folium(m, width=1200, height=600)
 
     # -----------------------------
     # LEGEND
     # -----------------------------
-    st.subheader("🧭 Legend")
+    st.subheader("🧭 NDVI Legend")
 
     st.markdown(
         """
-        🟢 Green → High Vegetation (Healthy Crops)  
+        🔴 Red → Low Vegetation (Stress / Bare Soil)  
         🟡 Yellow → Moderate Vegetation  
-        🔴 Red → Low Vegetation / Stress Areas  
+        🟢 Green → Healthy Crops / Dense Vegetation  
         """
     )
