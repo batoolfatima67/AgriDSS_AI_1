@@ -42,15 +42,12 @@ Report Date:
 {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ------------FARM INFORMATION--------------
-
-
 District : {data.get('district', 'N/A')}
 Tehsil   : {data.get('tehsil', 'N/A')}
 Crop     : {data.get('crop', 'N/A')}
 Area     : {data.get('area', 'N/A')}
 
 --------------WEATHER ANALYSIS-------------
-
 Temperature : {temperature} °C
 Humidity    : {humidity} %
 Condition   : {condition}
