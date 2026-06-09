@@ -47,12 +47,14 @@ def render_input_module():
         return
 
     # 🔥 SAFE GEOMETRY ACCESS (FINAL FIX)
-    geometry = selected.geometry.values[0]
+    geom_col = "geometry"
+
+    geometry = selected.iloc[0][geom_col]
 
     centroid = geometry.centroid
 
-    lat = float(centroid.y)
-    lon = float(centroid.x)
+    lat = centroid.y
+    lon = centroid.x
 
     st.subheader("📌 Auto-Detected Location")
     st.write("Latitude:", lat)
