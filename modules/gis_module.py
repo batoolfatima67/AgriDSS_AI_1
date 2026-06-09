@@ -1,76 +1,50 @@
-import streamlit as st
 import geopandas as gpd
-import folium
-from streamlit_folium import st_folium
-import os
+import streamlit as st
 
 
-def render_gis_module():
+# -----------------------------
+# LOAD SHAPEFILE SAFELY
+# -----------------------------
+def load_shapefile(path):
 
-    st.header("🗺 GIS Viewer")
-
-    # -----------------------------
-    # GET USER LOCATION
-    # -----------------------------
-    user_data = st.session_state.get("user_data", None)
-
-    if user_data:
-        lat = user_data.get("latitude", 31.5204)
-        lon = user_data.get("longitude", 74.3587)
-    else:
-        lat, lon = 31.5204, 74.3587
-        st.warning("Using default location. Please enter input first.")
-
-    # -----------------------------
-    # FILE PATH
-    # -----------------------------
-    shp_path = "data/districts.shp"
-
-    if not os.path.exists(shp_path):
-        st.error("Shapefile not found in /data folder.")
-        return
-
-    # -----------------------------
-    # LOAD SHAPEFILE SAFELY
-    # -----------------------------
     try:
-        gdf = gpd.read_file(shp_path)
+        gdf = gpd.read_file(path)
+        return gdf
 
     except Exception as e:
-        st.error("Error loading shapefile.")
-        st.exception(e)
-        return
+        st.error(f"Error loading shapefile: {path}")
+        st.error(str(e))
+        return None
 
-    # -----------------------------
-    # CREATE MAP
-    # -----------------------------
-    m = folium.Map(location=[lat, lon], zoom_start=7)
 
-    # Add district boundaries
-    folium.GeoJson(
-        gdf,
-        name="Districts"
-    ).add_to(m)
+# -----------------------------
+# GET ADMIN COLUMN SAFELY
+# -----------------------------
+def detect_column(gdf, possible_names):
 
-    # Add user location marker
-    folium.Marker(
-        location=[lat, lon],
-        popup="User Location",
-        icon=folium.Icon(color="red")
-    ).add_to(m)
+    for col in possible_names:
+        if col in gdf.columns:
+            return col
 
-    folium.LayerControl().add_to(m)
+    return None
 
-    # -----------------------------
-    # RENDER MAP
-    # -----------------------------
-    st_folium(m, width=1000, height=600)
 
-    # -----------------------------
-    # BASIC INFO
-    # -----------------------------
-    st.subheader("Dataset Info")
+# -----------------------------
+# GET FILTERED GEOMETRY
+# -----------------------------
+def get_geometry(gdf, column, value):
 
-    st.write("Number of districts:", len(gdf))
+    if gdf is None:
+        return None, None
 
-    st.write("Columns:", list(gdf.columns))
+    if column not in gdf.columns:
+        return None, None
+
+    filtered = gdf[gdf[column] == value]
+
+    if filtered.empty:
+        return None, None
+
+    geometry = filtered.geometry.iloc[0]
+
+    return filtered, geometry
