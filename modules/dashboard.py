@@ -2,38 +2,17 @@ import streamlit as st
 import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
-import numpy as np
 
-# GEE NDVI IMPORT
-from modules.gee_ndvi import get_ndvi
-
-
-# -------------------------------------------------
-# SAFE CLASSIFICATION FUNCTION
-# -------------------------------------------------
-def get_class_color(seed):
-    np.random.seed(seed)
-    r = np.random.random()
-
-    if r < 0.25:
-        return "red"      # temperature / stress
-    elif r < 0.55:
-        return "green"    # vegetation
-    elif r < 0.80:
-        return "yellow"   # poor vegetation
-    else:
-        return "blue"     # water
+from modules.gee_ndvi import get_ndvi_image
+import geemap.foliumap as geemap
 
 
-# -------------------------------------------------
-# MAIN DASHBOARD
-# -------------------------------------------------
 def render_dashboard():
 
-    st.header("🗺 AgriDSS_AI Geo Dashboard (GEE Enabled)")
+    st.header("🗺 AgriDSS_AI - Satellite Intelligence Dashboard")
 
     # -----------------------------
-    # FARM INPUT
+    # FARM INPUT DATA
     # -----------------------------
     user_data = st.session_state.get("user_data")
 
@@ -44,7 +23,7 @@ def render_dashboard():
     district = user_data.get("district")
     tehsil = user_data.get("tehsil")
 
-    st.subheader("📍 Selected Location")
+    st.subheader("📍 Selected Farm Location")
     st.write(f"District: {district}")
     st.write(f"Tehsil: {tehsil}")
 
@@ -54,11 +33,11 @@ def render_dashboard():
     try:
         gdf = gpd.read_file("data/pakistan_tehsil.shp")
     except Exception as e:
-        st.error(f"Shapefile error: {e}")
+        st.error(f"Error loading shapefile: {e}")
         return
 
     # -----------------------------
-    # AUTO DETECT COLUMNS
+    # AUTO-DETECT COLUMNS
     # -----------------------------
     district_col = None
     tehsil_col = None
@@ -70,12 +49,12 @@ def render_dashboard():
             tehsil_col = col
 
     if district_col is None or tehsil_col is None:
-        st.error("District/Tehsil columns not found.")
+        st.error("District/Tehsil columns not found in shapefile")
         st.write(gdf.columns.tolist())
         return
 
     # -----------------------------
-    # FILTER LOCATION
+    # FILTER SELECTED AREA
     # -----------------------------
     selected = gdf[
         (gdf[district_col] == district) &
@@ -83,12 +62,11 @@ def render_dashboard():
     ]
 
     if selected.empty:
-        st.error("Selected location not found in shapefile.")
+        st.error("Selected area not found in dataset")
         return
 
     geom = selected.geometry.iloc[0]
     center = geom.centroid
-    minx, miny, maxx, maxy = geom.bounds
 
     # -----------------------------
     # BASE MAP
@@ -100,29 +78,25 @@ def render_dashboard():
     )
 
     # -----------------------------
-    # STABLE GRID CLASSIFICATION
+    # REAL GEE NDVI LAYER
     # -----------------------------
-    seed = hash(str(district + tehsil)) % 10000
+    try:
+        ndvi_img = get_ndvi_image(geom)
 
-    for i in range(20):
-        for j in range(20):
+        vis_params = {
+            "min": 0,
+            "max": 1,
+            "palette": ["red", "yellow", "green"]
+        }
 
-            lat = miny + (maxy - miny) * i / 20
-            lon = minx + (maxx - minx) * j / 20
+        ndvi_layer = geemap.ee_tile_layer(ndvi_img, vis_params, "NDVI")
+        ndvi_layer.add_to(m)
 
-            color = get_class_color(seed + i + j)
-
-            folium.CircleMarker(
-                location=[lat, lon],
-                radius=4,
-                color=color,
-                fill=True,
-                fill_color=color,
-                fill_opacity=0.7
-            ).add_to(m)
+    except Exception as e:
+        st.error(f"GEE NDVI Error: {e}")
 
     # -----------------------------
-    # BOUNDARY LAYER
+    # TEHSIL BOUNDARY
     # -----------------------------
     folium.GeoJson(
         selected,
@@ -134,25 +108,10 @@ def render_dashboard():
     ).add_to(m)
 
     # -----------------------------
-    # MAP DISPLAY
+    # SHOW MAP
     # -----------------------------
-    st.subheader("🗺 Classified Geo Map")
+    st.subheader("🌍 Satellite NDVI Map (GEE)")
     st_folium(m, width=1200, height=600)
-
-    # -----------------------------
-    # 🌍 GEE NDVI PROCESSING
-    # -----------------------------
-    st.subheader("🌍 GEE NDVI Processing")
-
-    try:
-        ndvi_image = get_ndvi(geom)
-        st.success("NDVI computed successfully (GEE)")
-
-        # simple NDVI preview (placeholder)
-        st.write("NDVI Object:", ndvi_image)
-
-    except Exception as e:
-        st.error(f"GEE Error: {e}")
 
     # -----------------------------
     # LEGEND
@@ -161,9 +120,8 @@ def render_dashboard():
 
     st.markdown(
         """
-        🔴 Red → High Temperature / Stress  
-        🟢 Green → Healthy Vegetation  
-        🟡 Yellow → Poor Vegetation  
-        🔵 Blue → Water / Canals / Rivers  
+        🟢 Green → High Vegetation (Healthy Crops)  
+        🟡 Yellow → Moderate Vegetation  
+        🔴 Red → Low Vegetation / Stress Areas  
         """
     )
