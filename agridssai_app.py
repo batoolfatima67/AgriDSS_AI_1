@@ -643,7 +643,7 @@ if (
 
     else:
 
-    recommendations = ["No NDVI available for recommendation."]
+      recommendations = ["No NDVI available for recommendation."]
 
     st.write("## 🤖 AI Recommendations")
 
