@@ -47,14 +47,17 @@ def render_input_module():
         return
 
     # 🔥 SAFE GEOMETRY ACCESS (FINAL FIX)
-    geom_col = "geometry"
-
-    geometry = selected.iloc[0][geom_col]
+    # SAFE geometry access (works in Streamlit + GeoPandas)
+    try:
+    geometry = selected.geometry.iloc[0]
+    except:
+    # fallback method
+    geometry = selected.iloc[0].geometry
 
     centroid = geometry.centroid
 
-    lat = centroid.y
-    lon = centroid.x
+    lat = float(centroid.y)
+    lon = float(centroid.x)
 
     st.subheader("📌 Auto-Detected Location")
     st.write("Latitude:", lat)
