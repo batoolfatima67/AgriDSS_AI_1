@@ -1,6 +1,6 @@
 import streamlit as st
 import requests
-
+import random 
 
 def get_weather(lat, lon):
     
@@ -19,3 +19,12 @@ def get_weather(lat, lon):
         return {"error": "Weather API failed"}
 
     return response.json()
+
+def get_weather(lat, lon):
+
+    return {
+        "temperature": round(random.uniform(18, 38), 1),
+        "humidity": round(random.uniform(30, 80), 1),
+        "rainfall": round(random.uniform(0, 20), 1),
+        "condition": random.choice(["Sunny", "Cloudy", "Partly Cloudy"])
+    }
