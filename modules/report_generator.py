@@ -1,61 +1,91 @@
 import streamlit as st
+from datetime import datetime
 
 
 def generate_report():
 
-    st.title("📄 Farm Report")
+    st.header("📄 AgriDSS_AI Report")
 
+    data = st.session_state.get("user_data")
     weather = st.session_state.get("weather_data")
     ndvi = st.session_state.get("ndvi_value")
-    data = st.session_state.get("user_data")
 
-    if not weather or ndvi is None or not data:
-        st.warning("No report available. Run analysis first.")
+    if not data:
+        st.warning("No data available. Please complete Farm Input and Run Analysis first.")
         return
 
-    # ---------------- SINGLE REPORT CONTAINER ----------------
-    with st.container():
+    # Safe defaults
+    if weather:
+        temperature = weather.get("temperature", "N/A")
+        humidity = weather.get("humidity", "N/A")
+        condition = weather.get("condition", "N/A")
+    else:
+        temperature = humidity = condition = "N/A"
 
-        st.markdown("### 🌾 Farm Information")
-        st.markdown(f"""
-        - **District:** {data['district']}
-        - **Tehsil:** {data['tehsil']}
-        - **Crop:** {data['crop']}
-        """)
-
-        st.markdown("---")
-
-        st.markdown("### 🌦 Weather Summary")
-        st.markdown(f"""
-        - Temperature: **{weather['temperature']} °C**
-        - Humidity: **{weather['humidity']} %**
-        - Condition: **{weather['condition']}**
-        """)
-
-        st.markdown("---")
-
-        st.markdown("### 🌱 Vegetation Health (NDVI)")
-        st.markdown(f"**NDVI Value:** {ndvi}")
-
+    if ndvi is None:
+        ndvi = "N/A"
+        ndvi_status = "N/A"
+    else:
         if ndvi > 0.6:
-            st.success("Crop Condition: Healthy 🟢")
-            status = "Good"
+            ndvi_status = "Healthy Vegetation"
         elif ndvi > 0.3:
-            st.warning("Crop Condition: Moderate 🟡")
-            status = "Moderate"
+            ndvi_status = "Moderate Vegetation"
         else:
-            st.error("Crop Condition: Poor 🔴")
-            status = "Poor"
+            ndvi_status = "Low Vegetation"
 
-        st.markdown("---")
+    report = f"""
+==================================================
+                AGRIDSS_AI REPORT
+==================================================
 
-        st.markdown("### 🧠 Recommendation")
+Report Date:
+{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
-        if status == "Good":
-            st.info("No major action required. Maintain normal irrigation.")
-        elif status == "Moderate":
-            st.info("Slight increase in irrigation recommended.")
-        else:
-            st.info("Urgent attention required: crop stress detected.")
+--------------------------------------------------
+FARM INFORMATION
+--------------------------------------------------
 
-        st.markdown("---")
+District : {data.get('district', 'N/A')}
+Tehsil   : {data.get('tehsil', 'N/A')}
+Crop     : {data.get('crop', 'N/A')}
+Area     : {data.get('area', 'N/A')}
+
+--------------------------------------------------
+WEATHER ANALYSIS
+--------------------------------------------------
+
+Temperature : {temperature} °C
+Humidity    : {humidity} %
+Condition   : {condition}
+
+--------------------------------------------------
+NDVI ANALYSIS
+--------------------------------------------------
+
+NDVI Value  : {ndvi}
+Status      : {ndvi_status}
+
+--------------------------------------------------
+SUMMARY
+--------------------------------------------------
+
+This report was generated automatically by
+AgriDSS_AI Decision Support System.
+
+==================================================
+END OF REPORT
+==================================================
+"""
+
+    st.text_area(
+        "Generated Report",
+        report,
+        height=450
+    )
+
+    st.download_button(
+        label="📥 Download Report",
+        data=report,
+        file_name="AgriDSS_AI_Report.txt",
+        mime="text/plain"
+    )
