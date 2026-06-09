@@ -17,27 +17,24 @@ def run_full_analysis():
 
     st.success("System Ready 🚀")
 
-    # ---------------- WEATHER (DEMO) ----------------
-    st.subheader("🌦 Weather")
-
+    # ---------------- WEATHER ----------------
     weather = {
         "temperature": round(random.uniform(20, 40), 1),
         "humidity": round(random.uniform(30, 80), 1),
-        "condition": random.choice(["Sunny", "Cloudy", "Partly Cloudy"]),
+        "condition": "Sunny"
     }
 
+    # SAVE WEATHER
+    st.session_state.weather_data = weather
+
+    st.subheader("🌦 Weather")
     st.write(weather)
 
-    # ---------------- NDVI (DEMO) ----------------
-    st.subheader("🌱 NDVI")
-
+    # ---------------- NDVI ----------------
     ndvi = round(random.uniform(0.2, 0.85), 2)
 
-    st.metric("Vegetation Index", ndvi)
+    # SAVE NDVI
+    st.session_state.ndvi_value = ndvi
 
-    if ndvi > 0.6:
-        st.success("Healthy Vegetation 🟢")
-    elif ndvi > 0.3:
-        st.warning("Moderate Vegetation 🟡")
-    else:
-        st.error("Low Vegetation 🔴")
+    st.subheader("🌱 NDVI")
+    st.metric("Vegetation Index", ndvi)
