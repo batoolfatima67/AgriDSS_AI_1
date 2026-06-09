@@ -49,7 +49,7 @@ def render_input_module():
     districts = sorted(gdf[district_col].dropna().unique().tolist())
     district = st.selectbox("Select District", districts)
 
-    district_df = gdf[gdf[district_col] == district]
+    district_df = gdf[gdf[district_col] == DISTRICT]
 
     # -----------------------------
     # Tehsil selection
@@ -57,7 +57,7 @@ def render_input_module():
     tehsils = sorted(district_df[tehsil_col].dropna().unique().tolist())
     tehsil = st.selectbox("Select Tehsil", tehsils)
 
-    selected = district_df[district_df[tehsil_col] == tehsil]
+    selected = district_df[district_df[tehsil_col] == TEHSIL]
 
     if selected.empty:
         st.error("No spatial data found for selected location")
