@@ -1,127 +1,63 @@
 import streamlit as st
 
+from modules.weather_module import get_weather
+from modules.gee_ndvi import get_ndvi
+from modules.recommendation_engine import generate_recommendation
 
-def render_analysis_engine():
 
-    st.header("🚀 Run Complete Analysis")
+# -----------------------------
+# RUN FULL AI ANALYSIS PIPELINE
+# -----------------------------
+def run_full_analysis(lat, lon, crop):
 
-    user_data = st.session_state.get(
-        "user_data",
-        None
+    st.info("🚀 Running AgriDSS AI Analysis Pipeline...")
+
+    # -------------------------
+    # STEP 1: WEATHER
+    # -------------------------
+    weather = get_weather(lat, lon)
+
+    if weather is None:
+        st.warning("Weather data not available. Using fallback values.")
+        weather = {
+            "temperature": {"value": 30},
+            "humidity": {"value": 50},
+            "wind_speed": {"value": 5},
+            "condition": "unknown"
+        }
+
+    st.session_state.weather = weather
+
+
+    # -------------------------
+    # STEP 2: NDVI
+    # -------------------------
+    ndvi_value = get_ndvi(lat, lon)
+
+    if ndvi_value is None:
+        st.warning("NDVI not available. Using default value.")
+        ndvi_value = 0.4
+
+    st.session_state.ndvi_value = ndvi_value
+
+
+    # -------------------------
+    # STEP 3: AI RECOMMENDATION
+    # -------------------------
+    recommendation = generate_recommendation(
+        ndvi_value,
+        weather,
+        crop
     )
 
-    if not user_data:
-        st.warning(
-            "Please complete Input Module first."
-        )
-        return
+    st.session_state.recommendation = recommendation
 
-    st.subheader("Selected Farm")
 
-    st.write(
-        f"Province: {user_data['province']}"
-    )
-
-    st.write(
-        f"District: {user_data['district']}"
-    )
-
-    st.write(
-        f"Tehsil: {user_data['tehsil']}"
-    )
-
-    st.write(
-        f"Crop: {user_data['crop']}"
-    )
-
-    if st.button("Run Analysis"):
-
-        with st.spinner(
-            "Running AgriDSS_AI analysis..."
-        ):
-
-            weather_available = (
-                "weather_data"
-                in st.session_state
-            )
-
-            ndvi_available = (
-                "ndvi_value"
-                in st.session_state
-            )
-
-            recommendation_available = (
-                "recommendation"
-                in st.session_state
-            )
-
-        st.success(
-            "Analysis Complete"
-        )
-
-        st.subheader(
-            "Analysis Summary"
-        )
-
-        st.write(
-            f"Location: "
-            f"{user_data['district']} "
-            f"({user_data['latitude']:.4f}, "
-            f"{user_data['longitude']:.4f})"
-        )
-
-        if weather_available:
-
-            weather = st.session_state.weather_data
-
-            st.info(
-                f"Temperature: "
-                f"{weather['temp']} °C"
-            )
-
-            st.info(
-                f"Humidity: "
-                f"{weather['humidity']} %"
-            )
-
-        else:
-
-            st.warning(
-                "Weather analysis not available."
-            )
-
-        if ndvi_available:
-
-            ndvi = st.session_state.ndvi_value
-
-            st.success(
-                f"NDVI: {ndvi:.3f}"
-            )
-
-        else:
-
-            st.warning(
-                "NDVI analysis not available."
-            )
-
-        if recommendation_available:
-
-            rec = st.session_state.recommendation
-
-            st.success(
-                rec["status"]
-            )
-
-            st.write(
-                rec["irrigation"]
-            )
-
-            st.write(
-                rec["fertilizer"]
-            )
-
-        else:
-
-            st.warning(
-                "Recommendation engine not available."
-            )
+    # -------------------------
+    # STEP 4: RETURN RESULTS
+    # -------------------------
+    return {
+        "weather": weather,
+        "ndvi": ndvi_value,
+        "recommendation": recommendation
+    }
