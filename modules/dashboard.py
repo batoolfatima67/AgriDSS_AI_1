@@ -58,20 +58,24 @@ def render_dashboard():
     st.subheader("🗺 Map View")
     st_folium(m, width=1200, height=500)
 
+    st.success("NDVI section reached ✔")
+
     # ---------------- NDVI LAYER ----------------
     st.subheader("🌱 NDVI Layer (Demo)")
 
-    rows, cols = 50, 50
-    ndvi = np.random.uniform(0.2, 0.9, (rows, cols))
+    import pandas as pd
+    import numpy as np
 
-    fig, ax = plt.subplots()
+    st.subheader("🌱 NDVI Layer (Demo)")
 
-    img = ax.imshow(
-        ndvi,
-        cmap="RdYlGn",
-        extent=[minx, maxx, miny, maxy],
-        alpha=0.6
-    )
+    ndvi_values = np.random.uniform(0.2, 0.9, 100)
+
+    df = pd.DataFrame({
+        "pixel": range(100),
+        "ndvi": ndvi_values
+    })
+
+    st.line_chart(df.set_index("pixel"))
 
     plt.colorbar(img, ax=ax)
 
