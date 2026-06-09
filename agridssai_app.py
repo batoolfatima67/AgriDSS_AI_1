@@ -6,6 +6,8 @@ from modules.dashboard import render_dashboard
 from modules.report_generator import generate_report
 from modules.analysis_engine import run_full_analysis
 
+run_full_analysis()
+
 st.set_page_config(page_title="AgriDSS_AI", layout="wide")
 
 st.sidebar.title("🌾 AgriDSS_AI")
