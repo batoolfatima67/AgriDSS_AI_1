@@ -69,6 +69,9 @@ def render_ndvi_module():
             if ndvi_value is None:
                 st.error("NDVI could not be calculated.")
                 return
+            # Save for other modules
+            
+            st.session_state.ndvi_value = ndvi_value
 
             st.success("NDVI Computed Successfully")
 
