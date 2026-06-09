@@ -20,6 +20,9 @@ def render_dashboard():
     # Load shapefile
     gdf = gpd.read_file("data/pakistan_tehsil.shp")
 
+    st.write(gdf.columns.tolist())
+    st.stop()
+
     # --------------------------------------------------
     # IMPORTANT
     # Replace these with the SAME variables used
