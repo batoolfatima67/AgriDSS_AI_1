@@ -21,7 +21,7 @@ def run_full_analysis():
     st.subheader("📍 Farm Location")
     st.write(data["district"], "-", data["tehsil"])
 
-    # ---------------- WEATHER ----------------
+    # WEATHER
     st.subheader("🌦 Weather")
 
     if "weather_data" not in st.session_state:
@@ -30,7 +30,7 @@ def run_full_analysis():
     weather = st.session_state.weather_data
     st.write(weather)
 
-    # ---------------- NDVI ----------------
+    # NDVI
     st.subheader("🌱 NDVI")
 
     if "ndvi_value" not in st.session_state:
@@ -39,7 +39,7 @@ def run_full_analysis():
     ndvi = st.session_state.ndvi_value
     st.write("NDVI:", ndvi)
 
-    # ---------------- AI ----------------
+    # RECOMMENDATION
     st.subheader("🧠 Recommendation")
 
     if "recommendation" not in st.session_state:
