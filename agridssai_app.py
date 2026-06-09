@@ -635,7 +635,7 @@ if (
     # ---------------------------------------------------
     if ndvi_value is not None:
 
-    recommendations = generate_recommendation(
+      recommendations = generate_recommendation(
         ndvi_value,
         weather,
         crop
