@@ -1,67 +1,30 @@
-# ---------------------------
-# CORE AI RECOMMENDATION ENGINE
-# ---------------------------
+import streamlit as st
+
+
 def generate_recommendation(ndvi, weather, crop):
 
-    # SAFE DEFAULT OUTPUT
-    recommendation = {
-        "status": "No Data",
-        "irrigation": "No recommendation available",
-        "fertilizer": "No recommendation available",
-        "risk": "Unknown"
+    rec = {
+        "status": "",
+        "irrigation": "",
+        "fertilizer": ""
     }
 
-    # ---------------------------
-    # VALIDATION (VERY IMPORTANT)
-    # ---------------------------
-    if ndvi is None or weather is None:
-        return recommendation
-
-    # Safe weather extraction
-    temp = weather.get("temperature", {}).get("value", 30)
-    humidity = weather.get("humidity", {}).get("value", 50)
-
-    # ---------------------------
-    # NDVI BASED LOGIC (MAIN DRIVER)
-    # ---------------------------
     if ndvi < 0.2:
-
-        recommendation["status"] = "Severe Stress"
-        recommendation["irrigation"] = "Immediate irrigation required"
-        recommendation["fertilizer"] = "High nitrogen fertilizer recommended"
-        recommendation["risk"] = "High crop failure risk"
+        rec["status"] = "Severe Stress"
+        rec["irrigation"] = "Immediate irrigation required"
+        rec["fertilizer"] = "High nitrogen fertilizer needed"
 
     elif ndvi < 0.5:
-
-        recommendation["status"] = "Moderate Stress"
-        recommendation["irrigation"] = "Irrigation required within 2–3 days"
-        recommendation["fertilizer"] = "Balanced NPK fertilizer suggested"
-        recommendation["risk"] = "Moderate risk"
+        rec["status"] = "Moderate Stress"
+        rec["irrigation"] = "Schedule irrigation soon"
+        rec["fertilizer"] = "Balanced fertilizer recommended"
 
     else:
+        rec["status"] = "Healthy Crop"
+        rec["irrigation"] = "Normal irrigation"
+        rec["fertilizer"] = "No fertilizer needed"
 
-        recommendation["status"] = "Healthy Crop"
-        recommendation["irrigation"] = "Normal irrigation schedule"
-        recommendation["fertilizer"] = "No immediate fertilizer needed"
-        recommendation["risk"] = "Low risk"
+    if weather and weather.get("temp", 0) > 35:
+        rec["irrigation"] += " (Heat stress risk)"
 
-    # ---------------------------
-    # WEATHER MODIFICATIONS
-    # ---------------------------
-    if temp > 35:
-        recommendation["irrigation"] += " | Increase due to heat stress"
-        recommendation["risk"] += " | Heat stress risk"
-
-    if humidity < 30:
-        recommendation["risk"] += " | Drought stress warning"
-
-    # ---------------------------
-    # CROP-SPECIFIC LOGIC
-    # ---------------------------
-    if crop == "Rice" and ndvi < 0.3:
-        recommendation["fertilizer"] += " | Rice requires urgent nutrient correction"
-
-    if crop == "Wheat" and temp > 30:
-        recommendation["risk"] += " | Wheat heat stress during grain formation"
-
-    return recommendation
+    return rec
