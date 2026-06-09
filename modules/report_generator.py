@@ -4,42 +4,27 @@ from datetime import datetime
 
 def generate_report():
 
-    st.header("📄 Farm Report")
+    st.title("📊 Farm Report")
 
-    user_data = st.session_state.get("user_data")
     weather = st.session_state.get("weather_data")
     ndvi = st.session_state.get("ndvi_value")
-    rec = st.session_state.get("recommendation")
 
-    if not user_data:
-        st.warning("No data available")
+    if not weather or ndvi is None:
+        st.warning("No analysis data found. Run Analysis first.")
         return
 
-    report = f"""
-AGRIDSS_AI REPORT
-------------------
-Date: {datetime.now()}
+    st.subheader("🌦 Weather Report")
+    st.write(weather)
 
-LOCATION:
-{user_data['district']} - {user_data['tehsil']}
+    st.subheader("🌱 NDVI Report")
+    st.write("NDVI Value:", ndvi)
 
-CROP: {user_data['crop']}
-AREA: {user_data['area']} acres
+    # Interpretation
+    if ndvi > 0.6:
+        st.success("Healthy Crop 🟢")
+    elif ndvi > 0.3:
+        st.warning("Moderate Health 🟡")
+    else:
+        st.error("Poor Condition 🔴")
 
-WEATHER:
-{weather}
 
-NDVI:
-{ndvi}
-
-RECOMMENDATION:
-{rec}
-"""
-
-    st.text_area("Report", report, height=300)
-
-    st.download_button(
-        "Download Report",
-        report,
-        file_name="AgriDSS_Report.txt"
-    )
