@@ -80,17 +80,20 @@ def render_dashboard():
     # -----------------------------
     minx, miny, maxx, maxy = geom.bounds
 
-    def get_class_color():
-        r = random.random()
+    def get_class_color(seed):
+      np.random.seed(seed)
+      r = np.random.random()
 
-        if r < 0.25:
-            return "red"      # high temperature / stress
-        elif r < 0.55:
-            return "green"    # healthy vegetation
-        elif r < 0.80:
-            return "yellow"   # poor vegetation
-        else:
-            return "blue"     # water / canals / rivers
+    if r < 0.25:
+        return "red"
+    elif r < 0.55:
+        return "green"
+    elif r < 0.80:
+        return "yellow"
+    else:
+        return "blue"
+
+    seed = hash(str(district + tehsil)) % 10000
 
     # Create grid overlay
     for i in range(20):
@@ -99,7 +102,7 @@ def render_dashboard():
             lat = miny + (maxy - miny) * i / 20
             lon = minx + (maxx - minx) * j / 20
 
-            color = get_class_color()
+            color = get_class_color(seed + i + j)
 
             folium.CircleMarker(
                 location=[lat, lon],
