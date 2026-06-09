@@ -2,15 +2,35 @@ import streamlit as st
 import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
-import random
+import numpy as np
 
 
+# -------------------------------------------------
+# FIXED CLASSIFICATION FUNCTION (STABLE)
+# -------------------------------------------------
+def get_class_color(seed_value):
+    np.random.seed(seed_value)
+    r = np.random.random()
+
+    if r < 0.25:
+        return "red"      # temperature / stress
+    elif r < 0.55:
+        return "green"    # healthy vegetation
+    elif r < 0.80:
+        return "yellow"   # poor vegetation
+    else:
+        return "blue"     # water / canals
+
+
+# -------------------------------------------------
+# MAIN DASHBOARD FUNCTION
+# -------------------------------------------------
 def render_dashboard():
 
-    st.header("🗺 AgriDSS_AI - Smart Geo Dashboard")
+    st.header("🗺 AgriDSS_AI Smart Geo Dashboard")
 
     # -----------------------------
-    # GET FARM INPUT DATA
+    # SESSION DATA (FROM FARM INPUT)
     # -----------------------------
     user_data = st.session_state.get("user_data")
 
@@ -31,11 +51,11 @@ def render_dashboard():
     try:
         gdf = gpd.read_file("data/pakistan_tehsil.shp")
     except Exception as e:
-        st.error(f"Shapefile loading error: {e}")
+        st.error(f"Error loading shapefile: {e}")
         return
 
     # -----------------------------
-    # AUTO DETECT COLUMNS
+    # AUTO-DETECT COLUMNS
     # -----------------------------
     district_col = None
     tehsil_col = None
@@ -47,12 +67,12 @@ def render_dashboard():
             tehsil_col = col
 
     if district_col is None or tehsil_col is None:
-        st.error("Required columns not found in shapefile")
+        st.error("District/Tehsil columns not found in shapefile")
         st.write(gdf.columns.tolist())
         return
 
     # -----------------------------
-    # FILTER AREA
+    # FILTER SELECTED AREA
     # -----------------------------
     selected = gdf[
         (gdf[district_col] == district) &
@@ -60,14 +80,15 @@ def render_dashboard():
     ]
 
     if selected.empty:
-        st.error("Selected area not found in dataset")
+        st.error("Selected location not found in shapefile")
         return
 
     geom = selected.geometry.iloc[0]
     center = geom.centroid
+    minx, miny, maxx, maxy = geom.bounds
 
     # -----------------------------
-    # CREATE BASE MAP
+    # BASE MAP
     # -----------------------------
     m = folium.Map(
         location=[center.y, center.x],
@@ -76,26 +97,10 @@ def render_dashboard():
     )
 
     # -----------------------------
-    # SATELLITE-LIKE CLASSIFIED LAYER
+    # STABLE GRID CLASSIFICATION
     # -----------------------------
-    minx, miny, maxx, maxy = geom.bounds
-
-    def get_class_color(seed):
-      np.random.seed(seed)
-      r = np.random.random()
-
-    if r < 0.25:
-        return "red"
-    elif r < 0.55:
-        return "green"
-    elif r < 0.80:
-        return "yellow"
-    else:
-        return "blue"
-
     seed = hash(str(district + tehsil)) % 10000
 
-    # Create grid overlay
     for i in range(20):
         for j in range(20):
 
@@ -126,7 +131,7 @@ def render_dashboard():
     ).add_to(m)
 
     # -----------------------------
-    # SHOW MAP
+    # DISPLAY MAP
     # -----------------------------
     st.subheader("🗺 Classified Geo Map")
     st_folium(m, width=1200, height=600)
@@ -141,6 +146,6 @@ def render_dashboard():
         🔴 Red → High Temperature / Stress  
         🟢 Green → Healthy Vegetation  
         🟡 Yellow → Poor Vegetation  
-        🔵 Blue → Water Bodies (Canals/Rivers)
+        🔵 Blue → Water / Canals / Rivers
         """
     )
