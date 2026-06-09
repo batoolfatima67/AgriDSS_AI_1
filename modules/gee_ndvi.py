@@ -1,31 +1,32 @@
 import ee
-import streamlit as st
 
 # Initialize once
-def init_gee():
-    try:
-        ee.Initialize()
-    except Exception:
-        ee.Authenticate()
-        ee.Initialize()
+try:
+    ee.Initialize()
+except Exception:
+    ee.Authenticate()
+    ee.Initialize()
 
 
-def get_ndvi(district_geom):
+def get_ndvi_image(geometry):
 
-    init_gee()
-
-    # Convert geometry to GEE format
-    coords = district_geom.__geo_interface__["coordinates"]
+    # Convert shapefile geometry to GEE object
+    coords = geometry.__geo_interface__["coordinates"]
 
     region = ee.Geometry.Polygon(coords)
 
     # Sentinel-2 image collection
-    dataset = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED") \
-        .filterBounds(region) \
-        .filterDate("2024-01-01", "2024-12-31") \
-        .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", 20)) \
+    collection = (
+        ee.ImageCollection("COPERNICUS/S2_SR")
+        .filterBounds(region)
+        .filterDate("2024-01-01", "2024-12-31")
+        .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", 20))
         .median()
+    )
 
-    ndvi = dataset.normalizedDifference(["B8", "B4"]).rename("NDVI")
+    # NDVI calculation
+    ndvi = collection.normalizedDifference(
+        ["B8", "B4"]
+    ).rename("NDVI")
 
-    return ndvi
+    return ndvi.clip(region)
