@@ -2,13 +2,12 @@ import streamlit as st
 import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
-import pandas as pd
-import numpy as np
+import random
 
 
 def render_dashboard():
 
-    st.header("🗺 AgriDSS_AI Dashboard")
+    st.header("🗺 AgriDSS_AI - Smart Geo Dashboard")
 
     # -----------------------------
     # GET FARM INPUT DATA
@@ -22,7 +21,7 @@ def render_dashboard():
     district = user_data.get("district")
     tehsil = user_data.get("tehsil")
 
-    st.subheader("📍 Selected Farm Location")
+    st.subheader("📍 Selected Location")
     st.write(f"District: {district}")
     st.write(f"Tehsil: {tehsil}")
 
@@ -32,11 +31,11 @@ def render_dashboard():
     try:
         gdf = gpd.read_file("data/pakistan_tehsil.shp")
     except Exception as e:
-        st.error(f"Error loading shapefile: {e}")
+        st.error(f"Shapefile loading error: {e}")
         return
 
     # -----------------------------
-    # AUTO-DETECT COLUMNS (SAFE)
+    # AUTO DETECT COLUMNS
     # -----------------------------
     district_col = None
     tehsil_col = None
@@ -48,12 +47,12 @@ def render_dashboard():
             tehsil_col = col
 
     if district_col is None or tehsil_col is None:
-        st.error("District or Tehsil columns not found in shapefile.")
-        st.write("Available columns:", gdf.columns.tolist())
+        st.error("Required columns not found in shapefile")
+        st.write(gdf.columns.tolist())
         return
 
     # -----------------------------
-    # FILTER SELECTED AREA
+    # FILTER AREA
     # -----------------------------
     selected = gdf[
         (gdf[district_col] == district) &
@@ -61,69 +60,84 @@ def render_dashboard():
     ]
 
     if selected.empty:
-        st.error("Selected location not found in shapefile.")
+        st.error("Selected area not found in dataset")
         return
 
     geom = selected.geometry.iloc[0]
     center = geom.centroid
 
     # -----------------------------
-    # OPENSTREETMAP
+    # CREATE BASE MAP
     # -----------------------------
-    st.subheader("🗺 Map View (OpenStreetMap)")
-
     m = folium.Map(
         location=[center.y, center.x],
         zoom_start=10,
         tiles="OpenStreetMap"
     )
 
+    # -----------------------------
+    # SATELLITE-LIKE CLASSIFIED LAYER
+    # -----------------------------
+    minx, miny, maxx, maxy = geom.bounds
+
+    def get_class_color():
+        r = random.random()
+
+        if r < 0.25:
+            return "red"      # high temperature / stress
+        elif r < 0.55:
+            return "green"    # healthy vegetation
+        elif r < 0.80:
+            return "yellow"   # poor vegetation
+        else:
+            return "blue"     # water / canals / rivers
+
+    # Create grid overlay
+    for i in range(20):
+        for j in range(20):
+
+            lat = miny + (maxy - miny) * i / 20
+            lon = minx + (maxx - minx) * j / 20
+
+            color = get_class_color()
+
+            folium.CircleMarker(
+                location=[lat, lon],
+                radius=4,
+                color=color,
+                fill=True,
+                fill_color=color,
+                fill_opacity=0.7
+            ).add_to(m)
+
+    # -----------------------------
+    # TEHSIL BOUNDARY
+    # -----------------------------
     folium.GeoJson(
         selected,
         style_function=lambda x: {
-            "fillColor": "green",
+            "fillOpacity": 0.05,
             "color": "black",
-            "weight": 2,
-            "fillOpacity": 0.3
+            "weight": 2
         }
     ).add_to(m)
 
-    st_folium(m, width=1200, height=500)
+    # -----------------------------
+    # SHOW MAP
+    # -----------------------------
+    st.subheader("🗺 Classified Geo Map")
+    st_folium(m, width=1200, height=600)
 
     # -----------------------------
-    # NDVI DEMO (STABLE VERSION)
+    # LEGEND
     # -----------------------------
-    st.subheader("🌱 NDVI Time-Series (Demo)")
+    st.subheader("🧭 Legend")
 
-    ndvi_values = np.random.uniform(0.2, 0.9, 7)
-
-    ndvi_df = pd.DataFrame({
-        "Day": [
-            "Day 1",
-            "Day 2",
-            "Day 3",
-            "Day 4",
-            "Day 5",
-            "Day 6",
-            "Day 7"
-        ],
-        "NDVI": ndvi_values
-    })
-
-    st.line_chart(ndvi_df.set_index("Day"))
-
-    # -----------------------------
-    # NDVI STATUS
-    # -----------------------------
-    latest_ndvi = ndvi_values[-1]
-
-    st.subheader("🌱 Current NDVI Status")
-
-    st.metric("NDVI", round(latest_ndvi, 2))
-
-    if latest_ndvi > 0.6:
-        st.success("Healthy Vegetation 🟢")
-    elif latest_ndvi > 0.3:
-        st.warning("Moderate Vegetation 🟡")
-    else:
-        st.error("Low Vegetation 🔴")
+    st.markdown(
+        """
+        🔴 Red → High Temperature / Stress  
+        🟢 Green → Healthy Vegetation  
+        🟡 Yellow → Poor Vegetation  
+        🔵 Blue → Water Bodies (Canals/Rivers)
+        """
+    )
