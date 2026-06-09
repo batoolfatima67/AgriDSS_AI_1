@@ -12,15 +12,6 @@ try:
 except:
     pass
 
-
-
-
-
-
-
-
-
-
 def render_dashboard():
 
     st.header("🗺 AgriDSS_AI - Satellite Intelligence Dashboard")
