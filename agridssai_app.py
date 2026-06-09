@@ -12,12 +12,7 @@ st.sidebar.title("🌾 AgriDSS_AI")
 
 page = st.sidebar.radio(
     "Navigation",
-    [
-        "Farm Input",
-        "Run Analysis",
-        "Dashboard",
-        "Report"
-    ]
+    ["Farm Input", "Run Analysis", "Dashboard", "Report"]
 )
 
 if page == "Farm Input":
