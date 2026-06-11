@@ -1,123 +1,170 @@
 import streamlit as st
 import geopandas as gpd
 import folium
+
 from streamlit_folium import st_folium
-import numpy as np
 
-st.write("DEBUG: dashboard file is active")
-
-# -------------------------------------------------
-# FIXED CLASSIFICATION FUNCTION (STABLE)
-# -------------------------------------------------
-def get_class_color(seed_value):
-    np.random.seed(seed_value)
-    r = np.random.random()
-
-    if r < 0.25:
-        return "red"      # temperature / stress
-    elif r < 0.55:
-        return "green"    # healthy vegetation
-    elif r < 0.80:
-        return "yellow"   # poor vegetation
-    else:
-        return "blue"     # water / canals
+from modules.gee_ndvi import (
+    get_ndvi_from_gee,
+    get_ndvi_tile_layer,
+    get_ndvi_stats
+)
 
 
-# -------------------------------------------------
-# MAIN DASHBOARD FUNCTION
-# -------------------------------------------------
 def render_dashboard():
 
-    st.header("🗺 AgriDSS_AI Smart Geo Dashboard")
+    st.header(
+        "🗺 AgriDSS_AI Smart Geo Dashboard"
+    )
 
-    # -----------------------------
-    # SESSION DATA (FROM FARM INPUT)
-    # -----------------------------
-    user_data = st.session_state.get("user_data")
+    user_data = st.session_state.get(
+        "user_data"
+    )
 
     if not user_data:
-        st.warning("Please complete Farm Input first.")
+        st.warning(
+            "Please complete Farm Input first."
+        )
         return
 
-    district = user_data.get("district")
-    tehsil = user_data.get("tehsil")
+    district = user_data.get(
+        "district"
+    )
 
-    st.subheader("📍 Selected Location")
-    st.write(f"District: {district}")
-    st.write(f"Tehsil: {tehsil}")
+    tehsil = user_data.get(
+        "tehsil"
+    )
+
+    st.subheader(
+        "📍 Selected Location"
+    )
+
+    st.write(
+        f"District: {district}"
+    )
+
+    st.write(
+        f"Tehsil: {tehsil}"
+    )
 
     # -----------------------------
     # LOAD SHAPEFILE
     # -----------------------------
     try:
-        gdf = gpd.read_file("data/pakistan_tehsil.shp")
+
+        gdf = gpd.read_file(
+            "data/pakistan_tehsil.shp"
+        )
+
     except Exception as e:
-        st.error(f"Error loading shapefile: {e}")
+
+        st.error(
+            f"Error loading shapefile: {e}"
+        )
+
         return
 
     # -----------------------------
-    # AUTO-DETECT COLUMNS
+    # FIND DISTRICT/TEHSIL COLUMNS
     # -----------------------------
     district_col = None
     tehsil_col = None
 
     for col in gdf.columns:
+
         if col.lower() == "district":
             district_col = col
+
         if col.lower() == "tehsil":
             tehsil_col = col
 
-    if district_col is None or tehsil_col is None:
-        st.error("District/Tehsil columns not found in shapefile")
-        st.write(gdf.columns.tolist())
-        return
+    if district_col is None:
+
+        district_col = gdf.columns[0]
+
+    if tehsil_col is None:
+
+        tehsil_col = gdf.columns[1]
 
     # -----------------------------
     # FILTER SELECTED AREA
     # -----------------------------
     selected = gdf[
-        (gdf[district_col] == district) &
+        (gdf[district_col] == district)
+        &
         (gdf[tehsil_col] == tehsil)
     ]
 
     if selected.empty:
-        st.error("Selected location not found in shapefile")
+
+        st.error(
+            "Selected area not found."
+        )
+
         return
 
     geom = selected.geometry.iloc[0]
+
     center = geom.centroid
-    minx, miny, maxx, maxy = geom.bounds
 
     # -----------------------------
-    # BASE MAP
+    # CREATE MAP
     # -----------------------------
     m = folium.Map(
-        location=[center.y, center.x],
+        location=[
+            center.y,
+            center.x
+        ],
         zoom_start=10,
         tiles="OpenStreetMap"
     )
 
     # -----------------------------
-    # STABLE GRID CLASSIFICATION
+    # REAL GEE NDVI
     # -----------------------------
-    seed = hash(str(district + tehsil)) % 10000
+    try:
 
-    for i in range(20):
-        for j in range(20):
+        with st.spinner(
+            "Loading NDVI from Sentinel-2..."
+        ):
 
-            lat = miny + (maxy - miny) * i / 20
-            lon = minx + (maxx - minx) * j / 20
+            ndvi_image, ee_geometry = (
+                get_ndvi_from_gee(
+                    geom
+                )
+            )
 
-            color = get_class_color(seed + i + j)
+            tile_url = (
+                get_ndvi_tile_layer(
+                    ndvi_image
+                )
+            )
 
-            folium.CircleMarker(
-                location=[lat, lon],
-                radius=4,
-                color=color,
-                fill=True,
-                fill_color=color,
-                fill_opacity=0.7
+            folium.TileLayer(
+                tiles=tile_url,
+                attr="Google Earth Engine",
+                name="NDVI",
+                overlay=True,
+                control=True
             ).add_to(m)
+
+            stats = get_ndvi_stats(
+                ndvi_image,
+                ee_geometry
+            )
+
+            ndvi_mean = stats.get(
+                "NDVI",
+                None
+            )
+
+    except Exception as e:
+
+        st.error(
+            f"GEE Error: {e}"
+        )
+
+        ndvi_mean = None
 
     # -----------------------------
     # TEHSIL BOUNDARY
@@ -131,22 +178,57 @@ def render_dashboard():
         }
     ).add_to(m)
 
+    folium.LayerControl().add_to(m)
+
     # -----------------------------
     # DISPLAY MAP
     # -----------------------------
-    st.subheader("🗺 Classified Geo Map")
-    st_folium(m, width=1200, height=600)
+    st.subheader(
+        "🌱 Real Sentinel-2 NDVI"
+    )
+
+    st_folium(
+        m,
+        width=1200,
+        height=600
+    )
+
+    # -----------------------------
+    # NDVI STATISTICS
+    # -----------------------------
+    st.subheader(
+        "📊 NDVI Statistics"
+    )
+
+    if ndvi_mean is not None:
+
+        st.metric(
+            "Mean NDVI",
+            round(
+                ndvi_mean,
+                3
+            )
+        )
+
+    else:
+
+        st.warning(
+            "NDVI statistics unavailable."
+        )
 
     # -----------------------------
     # LEGEND
     # -----------------------------
-    st.subheader("🧭 Legend")
+    st.subheader(
+        "🧭 NDVI Legend"
+    )
 
     st.markdown(
         """
-        🔴 Red → High Temperature / Stress  
-        🟢 Green → Healthy Vegetation  
-        🟡 Yellow → Poor Vegetation  
-        🔵 Blue → Water / Canals / Rivers
-        """
+🟥 Red → Bare Soil / Low Vegetation
+
+🟨 Yellow → Moderate Vegetation
+
+🟩 Green → Healthy Vegetation
+"""
     )
