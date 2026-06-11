@@ -1,5 +1,6 @@
 import streamlit as st
 
+
 def render_ai_recommendation():
 
     st.header("🌾 AI Crop Recommendation System")
@@ -10,6 +11,9 @@ def render_ai_recommendation():
         st.warning("Please complete Farm Input first.")
         return
 
+    # -----------------------------
+    # BASIC INFO
+    # -----------------------------
     district = user_data.get("district")
     tehsil = user_data.get("tehsil")
     crop = user_data.get("crop", "Unknown")
@@ -20,12 +24,21 @@ def render_ai_recommendation():
     st.write(f"Crop: {crop}")
 
     # -----------------------------
-    # NDVI INPUT (FROM SESSION OR DEFAULT)
+    # NDVI (SAFE ACCESS)
     # -----------------------------
-    avg_ndvi = user_data.get("avg_ndvi", None)
+    avg_ndvi = (
+        user_data.get("avg_ndvi")
+        or st.session_state.get("ndvi_value")
+    )
 
     if avg_ndvi is None:
         st.warning("NDVI not available. Run analysis first.")
+        return
+
+    try:
+        avg_ndvi = float(avg_ndvi)
+    except:
+        st.error("Invalid NDVI value received.")
         return
 
     # -----------------------------
@@ -46,7 +59,6 @@ def render_ai_recommendation():
     elif avg_ndvi < 0.4:
 
         st.warning("🟡 MODERATE STRESS")
-
         st.write("""
         - Irrigation recommended within 3–5 days  
         - Monitor crop growth closely  
@@ -56,7 +68,6 @@ def render_ai_recommendation():
     elif avg_ndvi < 0.6:
 
         st.info("🟢 GOOD CONDITION")
-
         st.write("""
         - Crop health is stable  
         - Normal irrigation schedule  
@@ -66,7 +77,6 @@ def render_ai_recommendation():
     else:
 
         st.success("🌿 EXCELLENT CONDITION")
-
         st.write("""
         - High vegetation density  
         - No immediate action required  
@@ -74,14 +84,17 @@ def render_ai_recommendation():
         """)
 
     # -----------------------------
-    # BONUS INSIGHT
+    # AI SUMMARY
     # -----------------------------
     st.subheader("📊 AI Summary")
 
-    st.write(f"""
-    Based on satellite NDVI analysis for **{crop}**, the selected area shows 
-    vegetation condition categorized by remote sensing intelligence.
+    st.write(
+        f"""
+Based on satellite NDVI analysis for **{crop}**, the selected area shows 
+vegetation condition categorized using precision agriculture thresholds.
 
-    This recommendation is generated using NDVI thresholds commonly used in 
-    precision agriculture systems.
-    """)
+Average NDVI Value: **{avg_ndvi:.3f}**
+
+This recommendation is generated using satellite-driven vegetation intelligence.
+"""
+    )
