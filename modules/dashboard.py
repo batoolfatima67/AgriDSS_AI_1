@@ -105,8 +105,8 @@ def render_dashboard():
 
         ndvi_stats = get_ndvi_stats(ndvi_image, ee_geom)
         avg_ndvi = ndvi_stats.get("NDVI", None)
-
-    st.session_state["user_data"]["avg_ndvi"] = avg_ndvi
+        
+        st.session_state["user_data"]["avg_ndvi"] = avg_ndvi
 
     except Exception as e:
         st.warning(f"NDVI error: {e}")
