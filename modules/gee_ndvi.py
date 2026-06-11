@@ -2,55 +2,64 @@ import ee
 import json
 import streamlit as st
 
-
 # --------------------------------
-# INITIALIZE EARTH ENGINE
+# INITIALIZE GEE
 # --------------------------------
 def initialize_gee():
 
-    service_account_info = dict(
-        st.secrets["GOOGLE_SERVICE_ACCOUNT"]
-    )
+    try:
 
-    credentials = ee.ServiceAccountCredentials(
-        service_account_info["client_email"],
-        key_data=json.dumps(service_account_info)
-    )
+        service_account_info = st.secrets[
+            "GOOGLE_SERVICE_ACCOUNT"
+        ]
 
-    ee.Initialize(
-        credentials,
-        project="agri-ai-project-496918"
-    )
+        credentials = ee.ServiceAccountCredentials(
+            service_account_info["client_email"],
+            key_data=json.dumps(
+                dict(service_account_info)
+            )
+        )
 
+        ee.Initialize(
+            credentials=credentials,
+            project="agri-ai-project-496918"
+        )
 
-try:
-    service_account_info = dict(
-        st.secrets["GOOGLE_SERVICE_ACCOUNT"]
-    )
+        return True
 
-    st.success("Service Account Found")
+    except Exception as e:
 
-except Exception as e:
+        st.error(
+            f"GEE Initialization Failed: {e}"
+        )
 
-    st.error(f"Secrets Error: {e}")
+        return False
 
 
 # --------------------------------
-# SHAPELY → EE GEOMETRY
+# SHAPELY → EE
 # --------------------------------
 def shapely_to_ee(geometry):
 
-    geometry = geometry.simplify(0.001)
+    geometry = geometry.simplify(
+        0.001
+    )
 
-    geo_json = geometry.__geo_interface__
-
-    return ee.Geometry(geo_json)
+    return ee.Geometry(
+        geometry.__geo_interface__
+    )
 
 
 # --------------------------------
-# GET NDVI IMAGE
+# NDVI IMAGE
 # --------------------------------
 def get_ndvi_from_gee(geometry):
+
+    if not initialize_gee():
+
+        raise Exception(
+            "Earth Engine could not initialize."
+        )
 
     ee_geometry = shapely_to_ee(
         geometry
@@ -60,7 +69,9 @@ def get_ndvi_from_gee(geometry):
         ee.ImageCollection(
             "COPERNICUS/S2_SR_HARMONIZED"
         )
-        .filterBounds(ee_geometry)
+        .filterBounds(
+            ee_geometry
+        )
         .filterDate(
             "2025-01-01",
             "2025-12-31"
@@ -80,10 +91,14 @@ def get_ndvi_from_gee(geometry):
 
     ndvi = image.normalizedDifference(
         ["B8", "B4"]
-    ).rename("NDVI")
+    ).rename(
+        "NDVI"
+    )
 
     return (
-        ndvi.clip(ee_geometry),
+        ndvi.clip(
+            ee_geometry
+        ),
         ee_geometry
     )
 
