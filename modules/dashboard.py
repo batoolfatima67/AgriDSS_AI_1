@@ -11,6 +11,9 @@ from modules.gee_ndvi import (
 )
 
 st.error("NEW DASHBOARD VERSION LOADED")
+st.write(
+    "GOOGLE_SERVICE_ACCOUNT" in st.secrets
+)
 
 def render_dashboard():
 
