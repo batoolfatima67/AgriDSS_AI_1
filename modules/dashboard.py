@@ -127,7 +127,7 @@ def render_dashboard():
     st.subheader("🌍 Satellite NDVI Map")
     st_folium(m, width=1200, height=600)
     
-    st.subheader("📊 Vegetation Analytics")
+st.subheader("📊 Vegetation Analytics")
 
 if avg_ndvi is not None:
 
