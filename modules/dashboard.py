@@ -126,3 +126,16 @@ def render_dashboard():
     # -----------------------------
     st.subheader("🌍 Satellite NDVI Map")
     st_folium(m, width=1200, height=600)
+    
+    st.subheader("📊 Vegetation Analytics")
+
+if avg_ndvi is not None:
+
+    st.metric("🌿 Average NDVI", round(avg_ndvi, 3))
+
+    if avg_ndvi < 0.2:
+        st.error("⚠ Severe vegetation stress detected")
+    elif avg_ndvi < 0.4:
+        st.warning("🟡 Moderate vegetation health")
+    else:
+        st.success("🟢 Healthy vegetation condition")
