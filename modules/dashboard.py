@@ -102,6 +102,9 @@ def render_dashboard():
 
         ndvi_url = get_ndvi_map_url(ndvi_image)
 
+        ndvi_stats = get_ndvi_stats(ndvi_image, ee_geom)
+        avg_ndvi = ndvi_stats.get("NDVI", None)
+
         folium.raster_layers.TileLayer(
              tiles=ndvi_url,
              name="🌿 NDVI - Vegetation Health (Pro)",
