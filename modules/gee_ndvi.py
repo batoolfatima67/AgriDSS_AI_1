@@ -123,3 +123,15 @@ def get_ndvi_map_url(ndvi_image):
     map_id = ndvi_image.getMapId(vis_params)
 
     return map_id["tile_fetcher"].url_format
+
+# Average NDVI, Crop Health
+def get_ndvi_stats(ndvi_image, ee_geometry):
+
+    stats = ndvi_image.reduceRegion(
+        reducer=ee.Reducer.mean(),
+        geometry=ee_geometry,
+        scale=10,
+        maxPixels=1e9
+    )
+
+    return stats.getInfo()
