@@ -44,38 +44,63 @@ def render_input_module():
     tehsil_col = [c for c in gdf.columns if "TEH" in c or "TAHS" in c or "NAME" in c][0]
 
     # -----------------------------
-    # District selection
-    # -----------------------------
-    districts = sorted(gdf[district_col].dropna().unique().tolist())
+# District selection
+# -----------------------------
+districts = sorted(
+    gdf[district_col].dropna().unique().tolist()
+)
 
-    district = st.selectbox(
-        "Select District",
-        districts,
-        index=None,
-        placeholder="Choose District..."
-    )
+district = st.selectbox(
+    "Select District",
+    ["Select District"] + districts
+)
 
-    selected = district_df[
-    district_df[tehsil_col] == tehsil
+# -----------------------------
+# Tehsil selection
+# -----------------------------
+if district != "Select District":
+
+    district_df = gdf[
+        gdf[district_col] == district
     ]
 
-if selected.empty:
-    st.info("Please select a district and tehsil")
-    return
-  
-    # -----------------------------
-    # Tehsil selection
-    # -----------------------------
-    tehsils = sorted(district_df[tehsil_col].dropna().unique().tolist())
-
-    tehsil = st.selectbox(
-       "Select Tehsil",
-       tehsils,
-       index=None,
-       placeholder="Choose Tehsil..."
+    tehsils = sorted(
+        district_df[tehsil_col]
+        .dropna()
+        .unique()
+        .tolist()
     )
-    
-    selected = district_df[district_df[tehsil_col] == tehsil]
+
+else:
+    tehsils = []
+
+tehsil = st.selectbox(
+    "Select Tehsil",
+    ["Select Tehsil"] + tehsils
+)
+
+# -----------------------------
+# WAIT UNTIL USER SELECTS BOTH
+# -----------------------------
+if district == "Select District":
+    return
+
+if tehsil == "Select Tehsil":
+    return
+
+# -----------------------------
+# FILTER SELECTED AREA
+# -----------------------------
+selected = district_df[
+    district_df[tehsil_col] == tehsil
+]
+
+if selected.empty:
+    st.error(
+        "No spatial data found for selected location"
+    )
+    return
+
 
     # -----------------------------
     # SAFE GEOMETRY HANDLING (FINAL FIX)
