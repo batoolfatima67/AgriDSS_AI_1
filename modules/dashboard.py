@@ -129,7 +129,7 @@ def render_dashboard():
     
     st.subheader("📊 Vegetation Analytics")
 
-    if avg_ndvi is not None:
+if avg_ndvi is not None:
 
     st.metric("🌿 Average NDVI", round(avg_ndvi, 3))
 
