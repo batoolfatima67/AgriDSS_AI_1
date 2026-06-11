@@ -5,11 +5,12 @@ from streamlit_folium import st_folium
 
 from modules.gee_ndvi import (
     get_ndvi_from_gee,
-    get_ndvi_map_url
+    get_ndvi_map_url,
+    get_ndvi_stats
 )
 
 # -----------------------------------
-# CACHE SHAPEFILE (FAST LOADING)
+# CACHE SHAPEFILE (FAST LOAD)
 # -----------------------------------
 @st.cache_data
 def load_shapefile():
@@ -24,7 +25,7 @@ def render_dashboard():
     st.header("🗺 AgriDSS_AI Smart Geo Dashboard")
 
     # -----------------------------
-    # USER INPUT FROM SESSION
+    # USER DATA
     # -----------------------------
     user_data = st.session_state.get("user_data")
 
@@ -40,11 +41,11 @@ def render_dashboard():
     st.write(f"Tehsil: {tehsil}")
 
     # -----------------------------
-    # LOAD DATA (CACHED)
+    # LOAD SHAPEFILE
     # -----------------------------
     gdf = load_shapefile()
 
-    # detect columns safely
+    # detect columns
     district_col = None
     tehsil_col = None
 
@@ -59,7 +60,7 @@ def render_dashboard():
         return
 
     # -----------------------------
-    # FILTER LOCATION
+    # FILTER AREA
     # -----------------------------
     selected = gdf[
         (gdf[district_col] == district) &
@@ -74,7 +75,7 @@ def render_dashboard():
     center = geom.centroid
 
     # -----------------------------
-    # CREATE BASE MAP
+    # BASE MAP
     # -----------------------------
     m = folium.Map(
         location=[center.y, center.x],
@@ -83,7 +84,7 @@ def render_dashboard():
     )
 
     # -----------------------------
-    # ADD BOUNDARY
+    # BOUNDARY
     # -----------------------------
     folium.GeoJson(
         selected,
@@ -95,23 +96,26 @@ def render_dashboard():
     ).add_to(m)
 
     # -----------------------------
-    # NDVI (REAL SATELLITE LAYER)
+    # NDVI (GEE LAYER)
     # -----------------------------
+    avg_ndvi = None
+
     try:
         ndvi_image, ee_geom = get_ndvi_from_gee(geom)
 
         ndvi_url = get_ndvi_map_url(ndvi_image)
 
+        folium.raster_layers.TileLayer(
+            tiles=ndvi_url,
+            name="🌿 NDVI - Vegetation Health",
+            overlay=True,
+            control=True,
+            attr="Google Earth Engine | Sentinel-2 NDVI"
+        ).add_to(m)
+
+        # NDVI STATS
         ndvi_stats = get_ndvi_stats(ndvi_image, ee_geom)
         avg_ndvi = ndvi_stats.get("NDVI", None)
-
-        folium.raster_layers.TileLayer(
-             tiles=ndvi_url,
-             name="🌿 NDVI - Vegetation Health (Pro)",
-             overlay=True,
-             control=True,
-             attr="Google Earth Engine | Sentinel-2 | NDVI Processing"
-           ).add_to(m)
 
     except Exception as e:
         st.warning(f"NDVI not loaded: {e}")
@@ -119,23 +123,27 @@ def render_dashboard():
     # -----------------------------
     # LAYER CONTROL
     # -----------------------------
-    folium.LayerControl().add_to(m)
+    folium.LayerControl(collapsed=False).add_to(m)
 
     # -----------------------------
-    # DISPLAY MAP
+    # MAP DISPLAY
     # -----------------------------
     st.subheader("🌍 Satellite NDVI Map")
     st_folium(m, width=1200, height=600)
-    
-st.subheader("📊 Vegetation Analytics")
 
-if avg_ndvi is not None:
+    # -----------------------------
+    # ANALYTICS PANEL
+    # -----------------------------
+    st.subheader("📊 Vegetation Analytics")
 
-    st.metric("🌿 Average NDVI", round(avg_ndvi, 3))
+    if avg_ndvi is not None:
+        st.metric("🌿 Average NDVI", round(avg_ndvi, 3))
 
-    if avg_ndvi < 0.2:
-        st.error("⚠ Severe vegetation stress detected")
-    elif avg_ndvi < 0.4:
-        st.warning("🟡 Moderate vegetation health")
+        if avg_ndvi < 0.2:
+            st.error("⚠ Severe vegetation stress detected")
+        elif avg_ndvi < 0.4:
+            st.warning("🟡 Moderate vegetation health")
+        else:
+            st.success("🟢 Healthy vegetation condition")
     else:
-        st.success("🟢 Healthy vegetation condition")
+        st.info("NDVI statistics not available")
