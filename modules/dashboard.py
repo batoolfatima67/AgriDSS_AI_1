@@ -69,15 +69,6 @@ def render_dashboard():
         tiles="OpenStreetMap"
     )
 
-    ndvi_value = None
-
-    folium.raster_layers.TileLayer(
-    tiles=ndvi_url,
-    name="NDVI Layer",
-    overlay=True,
-    control=True
-    ).add_to(m)
-
     # -----------------------------
     # SAFE NDVI BLOCK
     # -----------------------------
@@ -100,6 +91,15 @@ def render_dashboard():
 
     except Exception as e:
         st.warning(f"NDVI not loaded: {e}")
+
+    ndvi_value = None
+
+    folium.raster_layers.TileLayer(
+    tiles=ndvi_url,
+    name="NDVI Layer",
+    overlay=True,
+    control=True
+    ).add_to(m)
 
     # -----------------------------
     # BOUNDARY
