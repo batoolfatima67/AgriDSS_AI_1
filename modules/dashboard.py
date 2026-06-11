@@ -8,6 +8,8 @@ from modules.gee_ndvi import (
     get_ndvi_tile_layer,
     get_ndvi_stats
 )
+from modules.gee_ndvi 
+import get_ndvi_from_gee, get_ndvi_map_url
 
 @st.cache_data
 def load_shapefile():
@@ -68,6 +70,13 @@ def render_dashboard():
     )
 
     ndvi_value = None
+
+    folium.raster_layers.TileLayer(
+    tiles=ndvi_url,
+    name="NDVI Layer",
+    overlay=True,
+    control=True
+    ).add_to(m)
 
     # -----------------------------
     # SAFE NDVI BLOCK
