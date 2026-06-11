@@ -59,6 +59,36 @@ Condition   : {condition}
 NDVI Value  : {ndvi}
 Status      : {ndvi_status}
 
+---------------NDVI ANALYSIS--------------
+
+# -----------------------------
+# AI INSIGHT (INTEGRATED)
+# -----------------------------
+
+if avg_ndvi is not None:
+
+    st.markdown("### 🌾 Crop Intelligence Summary")
+
+    st.write(f"NDVI Value: {avg_ndvi:.2f}")
+
+    if avg_ndvi < 0.2:
+        insight = "Critical stress detected. Immediate irrigation and soil recovery actions required."
+        color = "🔴"
+
+    elif avg_ndvi < 0.4:
+        insight = "Moderate stress observed. Irrigation and monitoring recommended."
+        color = "🟡"
+
+    elif avg_ndvi < 0.6:
+        insight = "Crop condition is stable with mild stress risk."
+        color = "🟢"
+
+    else:
+        insight = "Excellent vegetation health detected."
+        color = "🌿"
+
+    st.write(f"{color} {insight}")
+
 ---------------SUMMARY--------------------
 
 This report was generated automatically by
