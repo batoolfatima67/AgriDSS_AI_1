@@ -8,7 +8,7 @@ import streamlit as st
 @st.cache_data
 def load_shapefile():
     return gpd.read_file("data/pakistan_tehsil.shp")
-    
+
 # -----------------------------------
 # GEE INITIALIZATION (SAFE)
 # -----------------------------------
@@ -27,6 +27,7 @@ def initialize_gee():
     except Exception as e:
         st.error(f"GEE Initialization Failed: {e}")
 
+
 initialize_gee()
 
 # -----------------------------------
@@ -35,6 +36,7 @@ initialize_gee()
 def shapely_to_ee(geometry):
     geo_json = geometry.__geo_interface__
     return ee.Geometry(geo_json)
+
 
 # -----------------------------------
 # NDVI FROM SENTINEL-2
@@ -56,6 +58,7 @@ def get_ndvi_from_gee(geometry):
     ndvi = image.normalizedDifference(["B8", "B4"]).rename("NDVI")
 
     return ndvi.clip(ee_geometry), ee_geometry
+
 
 # -----------------------------------
 # NDVI TILE LAYER (PRO GIS)
@@ -92,6 +95,7 @@ def get_ndvi_stats(ndvi_image, ee_geometry):
 
     return stats.getInfo()
 
+
 # -----------------------------------
 # OPTIONAL: VEGETATION CLASSIFICATION
 # -----------------------------------
@@ -107,4 +111,4 @@ def classify_ndvi(ndvi_image, ee_geometry):
     )
 
     return classified.clip(ee_geometry)
-
+    
