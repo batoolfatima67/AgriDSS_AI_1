@@ -5,20 +5,27 @@ from streamlit_folium import st_folium
 
 from modules.gee_ndvi import (
     get_ndvi_from_gee,
-    get_ndvi_tile_layer,
-    get_ndvi_stats
+    get_ndvi_map_url
 )
-from modules.gee_ndvi 
-import get_ndvi_from_gee, get_ndvi_map_url
 
+# -----------------------------------
+# CACHE SHAPEFILE (FAST LOADING)
+# -----------------------------------
 @st.cache_data
 def load_shapefile():
     return gpd.read_file("data/pakistan_tehsil.shp")
-    
+
+
+# -----------------------------------
+# MAIN DASHBOARD
+# -----------------------------------
 def render_dashboard():
 
     st.header("🗺 AgriDSS_AI Smart Geo Dashboard")
 
+    # -----------------------------
+    # USER INPUT FROM SESSION
+    # -----------------------------
     user_data = st.session_state.get("user_data")
 
     if not user_data:
@@ -28,11 +35,16 @@ def render_dashboard():
     district = user_data.get("district")
     tehsil = user_data.get("tehsil")
 
+    st.subheader("📍 Selected Location")
+    st.write(f"District: {district}")
+    st.write(f"Tehsil: {tehsil}")
+
     # -----------------------------
-    # LOAD SHAPEFILE
+    # LOAD DATA (CACHED)
     # -----------------------------
     gdf = load_shapefile()
 
+    # detect columns safely
     district_col = None
     tehsil_col = None
 
@@ -42,26 +54,27 @@ def render_dashboard():
         if col.lower() == "tehsil":
             tehsil_col = col
 
-    if district_col is None:
-        district_col = gdf.columns[0]
+    if district_col is None or tehsil_col is None:
+        st.error("District/Tehsil columns not found in shapefile")
+        return
 
-    if tehsil_col is None:
-        tehsil_col = gdf.columns[1]
-
+    # -----------------------------
+    # FILTER LOCATION
+    # -----------------------------
     selected = gdf[
         (gdf[district_col] == district) &
         (gdf[tehsil_col] == tehsil)
     ]
 
     if selected.empty:
-        st.error("Area not found in shapefile")
+        st.error("Selected location not found in shapefile")
         return
 
     geom = selected.geometry.iloc[0]
     center = geom.centroid
 
     # -----------------------------
-    # MAP
+    # CREATE BASE MAP
     # -----------------------------
     m = folium.Map(
         location=[center.y, center.x],
@@ -70,39 +83,7 @@ def render_dashboard():
     )
 
     # -----------------------------
-    # SAFE NDVI BLOCK
-    # -----------------------------
-    try:
-
-        ndvi_image, ee_geometry = get_ndvi_from_gee(geom)
-
-        tile_url = get_ndvi_tile_layer(ndvi_image)
-
-        folium.TileLayer(
-            tiles=tile_url,
-            name="NDVI",
-            attr="GEE",
-            overlay=True,
-            control=True
-        ).add_to(m)
-
-        stats = get_ndvi_stats(ndvi_image, ee_geometry)
-        ndvi_value = stats.get("NDVI")
-
-    except Exception as e:
-        st.warning(f"NDVI not loaded: {e}")
-
-    ndvi_value = None
-
-    folium.raster_layers.TileLayer(
-    tiles=ndvi_url,
-    name="NDVI Layer",
-    overlay=True,
-    control=True
-    ).add_to(m)
-
-    # -----------------------------
-    # BOUNDARY
+    # ADD BOUNDARY
     # -----------------------------
     folium.GeoJson(
         selected,
@@ -113,15 +94,31 @@ def render_dashboard():
         }
     ).add_to(m)
 
+    # -----------------------------
+    # NDVI (REAL SATELLITE LAYER)
+    # -----------------------------
+    try:
+        ndvi_image, ee_geom = get_ndvi_from_gee(geom)
+
+        ndvi_url = get_ndvi_map_url(ndvi_image)
+
+        folium.raster_layers.TileLayer(
+            tiles=ndvi_url,
+            name="NDVI (Sentinel-2)",
+            overlay=True,
+            control=True
+        ).add_to(m)
+
+    except Exception as e:
+        st.warning(f"NDVI not loaded: {e}")
+
+    # -----------------------------
+    # LAYER CONTROL
+    # -----------------------------
     folium.LayerControl().add_to(m)
 
     # -----------------------------
-    # OUTPUT
+    # DISPLAY MAP
     # -----------------------------
-    st.subheader("🌍 Map View")
+    st.subheader("🌍 Satellite NDVI Map")
     st_folium(m, width=1200, height=600)
-
-    if ndvi_value:
-        st.metric("NDVI Mean", round(ndvi_value, 3))
-    else:
-        st.info("NDVI not available (check GEE setup)")
