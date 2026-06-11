@@ -108,7 +108,3 @@ def classify_ndvi(ndvi_image, ee_geometry):
 
     return classified.clip(ee_geometry)
 
-
-
-
-t available")
