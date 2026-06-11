@@ -10,12 +10,12 @@ from pathlib import Path
 def load_data():
 
     shp_path = Path("data/pakistan_tehsil.shp")
-
     gdf = gpd.read_file(shp_path)
 
-    # Only normalize NON-geometry columns
+    # Keep geometry column safe
     geom_col = gdf.geometry.name
 
+    # Normalize column names (except geometry)
     new_cols = []
     for col in gdf.columns:
         if col == geom_col:
@@ -46,9 +46,7 @@ def render_input_module():
     # -----------------------------
     # District selection
     # -----------------------------
-    districts = sorted(
-        gdf[district_col].dropna().unique().tolist()
-    )
+    districts = sorted(gdf[district_col].dropna().unique().tolist())
 
     district = st.selectbox(
         "Select District",
@@ -58,55 +56,40 @@ def render_input_module():
     # -----------------------------
     # Tehsil selection
     # -----------------------------
+    district_df = gdf[gdf[district_col] == district] if district != "Select District" else gdf.iloc[0:0]
+
     if district != "Select District":
+        tehsils = sorted(
+            district_df[tehsil_col].dropna().unique().tolist()
+        )
+    else:
+        tehsils = []
 
-       district_df = gdf[
-        gdf[district_col] == district
-       ]
-
-       tehsils = sorted(
-           district_df[tehsil_col]
-           .dropna()
-           .unique()
-           .tolist()
-       )
-
-else:
-    tehsils = []
-
-tehsil = st.selectbox(
-       "Select Tehsil",
-       ["Select Tehsil"] + tehsils
-)
+    tehsil = st.selectbox(
+        "Select Tehsil",
+        ["Select Tehsil"] + tehsils
+    )
 
     # -----------------------------
-    # WAIT UNTIL USER SELECTS BOTH
+    # STOP IF NOT SELECTED
     # -----------------------------
-    if district == "Select District":
-       return
-
-    if tehsil == "Select Tehsil":
-       return
+    if district == "Select District" or tehsil == "Select Tehsil":
+        st.info("Please select District and Tehsil to continue")
+        return
 
     # -----------------------------
     # FILTER SELECTED AREA
     # -----------------------------
-    selected = district_df[
-       district_df[tehsil_col] == tehsil
-    ]
+    selected = district_df[district_df[tehsil_col] == tehsil]
 
-   if selected.empty:
-       st.error(
-           "No spatial data found for selected location"
-       )
-       return
-
+    if selected.empty:
+        st.error("No spatial data found for selected location")
+        return
 
     # -----------------------------
-    # SAFE GEOMETRY HANDLING (FINAL FIX)
+    # GEOMETRY HANDLING
     # -----------------------------
     geom_col = selected.geometry.name
-
     geometry = selected.iloc[0][geom_col]
 
     centroid = geometry.centroid
@@ -118,7 +101,6 @@ tehsil = st.selectbox(
     # DISPLAY LOCATION
     # -----------------------------
     st.subheader("📌 Auto-Detected Farm Location")
-
     st.write("Latitude:", lat)
     st.write("Longitude:", lon)
 
