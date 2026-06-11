@@ -106,7 +106,8 @@ def render_dashboard():
             tiles=ndvi_url,
             name="NDVI (Sentinel-2)",
             overlay=True,
-            control=True
+            control=True,
+            attr="Google Earth Engine | Sentinel-2"
         ).add_to(m)
 
     except Exception as e:
