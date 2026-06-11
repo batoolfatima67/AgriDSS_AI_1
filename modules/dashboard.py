@@ -105,7 +105,13 @@ def render_dashboard():
 
         ndvi_stats = get_ndvi_stats(ndvi_image, ee_geom)
         avg_ndvi = ndvi_stats.get("NDVI", None)
+
+        if avg_ndvi is not None:
+            avg_ndvi = float(avg_ndvi)
         
+        if "user_data" not in st.session_state:
+            st.session_state["user_data"] = {}
+
         st.session_state["user_data"]["avg_ndvi"] = avg_ndvi
 
     except Exception as e:
