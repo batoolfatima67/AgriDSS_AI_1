@@ -24,10 +24,15 @@ def initialize_gee():
 
 
 try:
-    initialize_gee()
+    service_account_info = dict(
+        st.secrets["GOOGLE_SERVICE_ACCOUNT"]
+    )
+
+    st.success("Service Account Found")
 
 except Exception as e:
-    print("GEE Initialization Error:", e)
+
+    st.error(f"Secrets Error: {e}")
 
 
 # --------------------------------
