@@ -2,52 +2,43 @@ import ee
 import json
 import streamlit as st
 
-# --------------------------------
-# INITIALIZE GEE
-# --------------------------------
 
-st.success("Loading Earth Engine...")
-
+# --------------------------------
+# SAFE INITIALIZATION
+# --------------------------------
 def initialize_gee():
 
-    try:
+    if "GOOGLE_SERVICE_ACCOUNT" not in st.secrets:
+        return False, "Missing GOOGLE_SERVICE_ACCOUNT in Streamlit secrets"
 
-        service_account_info = st.secrets[
-            "GOOGLE_SERVICE_ACCOUNT"
-        ]
+    try:
+        service_account_info = dict(
+            st.secrets["GOOGLE_SERVICE_ACCOUNT"]
+        )
 
         credentials = ee.ServiceAccountCredentials(
             service_account_info["client_email"],
-            key_data=json.dumps(
-                dict(service_account_info)
-            )
+            key_data=json.dumps(service_account_info)
         )
 
         ee.Initialize(
-            credentials=credentials,
-            project="agri-ai-project-496918"
+            credentials,
+            project=service_account_info.get(
+                "project_id",
+                "agri-ai-project-496918"
+            )
         )
 
-        return True
+        return True, "GEE Initialized"
 
     except Exception as e:
+        return False, f"GEE Init Error: {e}"
 
-        st.error(
-            f"GEE Initialization Failed: {e}"
-        )
-
-        return False
-        
-st.success("Earth Engine Connected")
 
 # --------------------------------
 # SHAPELY → EE
 # --------------------------------
 def shapely_to_ee(geometry):
-
-    geometry = geometry.simplify(
-        0.001
-    )
 
     return ee.Geometry(
         geometry.__geo_interface__
@@ -55,65 +46,36 @@ def shapely_to_ee(geometry):
 
 
 # --------------------------------
-# NDVI IMAGE
+# NDVI
 # --------------------------------
 def get_ndvi_from_gee(geometry):
 
-    if not initialize_gee():
+    status, msg = initialize_gee()
 
-        raise Exception(
-            "Earth Engine could not initialize."
-        )
+    if not status:
+        raise Exception(msg)
 
-    ee_geometry = shapely_to_ee(
-        geometry
-    )
+    ee_geometry = shapely_to_ee(geometry)
 
     collection = (
-        ee.ImageCollection(
-            "COPERNICUS/S2_SR_HARMONIZED"
-        )
-        .filterBounds(
-            ee_geometry
-        )
-        .filterDate(
-            "2025-01-01",
-            "2025-12-31"
-        )
-        .filter(
-            ee.Filter.lt(
-                "CLOUDY_PIXEL_PERCENTAGE",
-                20
-            )
-        )
-        .select(
-            ["B4", "B8"]
-        )
+        ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+        .filterBounds(ee_geometry)
+        .filterDate("2025-01-01", "2025-12-31")
+        .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", 20))
+        .select(["B4", "B8"])
     )
 
     image = collection.median()
 
-    ndvi = image.normalizedDifference(
-        ["B8", "B4"]
-    ).rename(
-        "NDVI"
-    )
+    ndvi = image.normalizedDifference(["B8", "B4"]).rename("NDVI")
 
-    return (
-        ndvi.clip(
-            ee_geometry
-        ),
-        ee_geometry
-    )
+    return ndvi.clip(ee_geometry), ee_geometry
 
 
 # --------------------------------
-# NDVI STATS
+# STATS
 # --------------------------------
-def get_ndvi_stats(
-    ndvi_image,
-    ee_geometry
-):
+def get_ndvi_stats(ndvi_image, ee_geometry):
 
     stats = ndvi_image.reduceRegion(
         reducer=ee.Reducer.mean(),
@@ -126,26 +88,16 @@ def get_ndvi_stats(
 
 
 # --------------------------------
-# TILE URL
+# TILE
 # --------------------------------
-def get_ndvi_tile_layer(
-    ndvi_image
-):
+def get_ndvi_tile_layer(ndvi_image):
 
-    vis_params = {
+    vis = {
         "min": 0,
         "max": 1,
-        "palette": [
-            "red",
-            "yellow",
-            "green"
-        ]
+        "palette": ["red", "yellow", "green"]
     }
 
-    map_id = ndvi_image.getMapId(
-        vis_params
-    )
+    map_id = ndvi_image.getMapId(vis)
 
-    return map_id[
-        "tile_fetcher"
-    ].url_format
+    return map_id["tile_fetcher"].url_format
