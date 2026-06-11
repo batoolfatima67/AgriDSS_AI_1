@@ -5,6 +5,9 @@ import streamlit as st
 # --------------------------------
 # INITIALIZE GEE
 # --------------------------------
+
+st.success("Loading Earth Engine...")
+
 def initialize_gee():
 
     try:
@@ -34,7 +37,8 @@ def initialize_gee():
         )
 
         return False
-
+        
+st.success("Earth Engine Connected")
 
 # --------------------------------
 # SHAPELY → EE
