@@ -9,7 +9,10 @@ from modules.gee_ndvi import (
     get_ndvi_stats
 )
 
-
+@st.cache_data
+def load_shapefile():
+    return gpd.read_file("data/pakistan_tehsil.shp")
+    
 def render_dashboard():
 
     st.header("🗺 AgriDSS_AI Smart Geo Dashboard")
@@ -26,7 +29,7 @@ def render_dashboard():
     # -----------------------------
     # LOAD SHAPEFILE
     # -----------------------------
-    gdf = gpd.read_file("data/pakistan_tehsil.shp")
+    gdf = load_shapefile()
 
     district_col = None
     tehsil_col = None
