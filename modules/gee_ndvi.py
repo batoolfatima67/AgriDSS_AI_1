@@ -104,3 +104,18 @@ def get_ndvi_tile_layer(ndvi_image):
     map_id = ndvi_image.getMapId(vis)
 
     return map_id["tile_fetcher"].url_format
+
+# REAL_MAP_LAYER
+def get_ndvi_map_url(ndvi_image):
+    vis_params = {
+        "min": 0,
+        "max": 1,
+        "palette": [
+            "red",      # low vegetation
+            "yellow",   # moderate
+            "green"     # healthy
+        ]
+    }
+
+    map_id = ndvi_image.getMapId(vis_params)
+    return map_id["tile_fetcher"].url_format
