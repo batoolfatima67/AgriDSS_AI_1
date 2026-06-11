@@ -56,6 +56,10 @@ def render_input_module():
     )
 
     district_df = gdf[gdf[district_col] == district]
+
+    if selected.empty:
+    st.info("Please select a district and tehsil")
+    return
   
     # -----------------------------
     # Tehsil selection
