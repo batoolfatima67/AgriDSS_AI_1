@@ -51,42 +51,42 @@ def render_input_module():
     )
 
     district = st.selectbox(
-       "Select District",
-       ["Select District"] + districts
+        "Select District",
+        ["Select District"] + districts
     )
 
     # -----------------------------
     # Tehsil selection
     # -----------------------------
-if district != "Select District":
+    if district != "Select District":
 
-    district_df = gdf[
+       district_df = gdf[
         gdf[district_col] == district
-    ]
+       ]
 
-    tehsils = sorted(
-        district_df[tehsil_col]
-        .dropna()
-        .unique()
-        .tolist()
-    )
+       tehsils = sorted(
+           district_df[tehsil_col]
+           .dropna()
+           .unique()
+           .tolist()
+       )
 
 else:
     tehsils = []
 
-    tehsil = st.selectbox(
+tehsil = st.selectbox(
        "Select Tehsil",
        ["Select Tehsil"] + tehsils
-    )
+)
 
     # -----------------------------
     # WAIT UNTIL USER SELECTS BOTH
     # -----------------------------
-if district == "Select District":
-    return
+    if district == "Select District":
+       return
 
-if tehsil == "Select Tehsil":
-    return
+    if tehsil == "Select Tehsil":
+       return
 
     # -----------------------------
     # FILTER SELECTED AREA
@@ -95,11 +95,11 @@ if tehsil == "Select Tehsil":
        district_df[tehsil_col] == tehsil
     ]
 
-if selected.empty:
-    st.error(
-        "No spatial data found for selected location"
-    )
-    return
+   if selected.empty:
+       st.error(
+           "No spatial data found for selected location"
+       )
+       return
 
 
     # -----------------------------
