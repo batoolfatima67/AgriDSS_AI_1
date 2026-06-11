@@ -55,10 +55,12 @@ def render_input_module():
         placeholder="Choose District..."
     )
 
-    district_df = gdf[gdf[district_col] == district]
+    selected = district_df[
+    district_df[tehsil_col] == tehsil
+    ]
 
-    if selected.empty:
-       st.info("Please select a district and tehsil")
+if selected.empty:
+    st.info("Please select a district and tehsil")
     return
   
     # -----------------------------
