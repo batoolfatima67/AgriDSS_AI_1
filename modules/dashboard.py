@@ -10,6 +10,7 @@ from modules.gee_ndvi import (
     get_ndvi_stats
 )
 
+st.error("NEW DASHBOARD VERSION LOADED")
 
 def render_dashboard():
 
