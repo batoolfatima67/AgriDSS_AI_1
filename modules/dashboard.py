@@ -4,6 +4,7 @@ import folium
 from streamlit_folium import st_folium
 import numpy as np
 
+st.write("DEBUG: dashboard file is active")
 
 # -------------------------------------------------
 # FIXED CLASSIFICATION FUNCTION (STABLE)
