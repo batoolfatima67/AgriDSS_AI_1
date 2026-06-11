@@ -47,21 +47,35 @@ def render_input_module():
     # District selection
     # -----------------------------
     districts = sorted(gdf[district_col].dropna().unique().tolist())
-    district = st.selectbox("Select District", districts)
+
+    district = st.selectbox(
+        "Select District",
+        districts,
+        index=None,
+        placeholder="Choose District..."
+    )
+
+    if district is None:
+       st.stop()
 
     district_df = gdf[gdf[district_col] == district]
-
+  
     # -----------------------------
     # Tehsil selection
     # -----------------------------
     tehsils = sorted(district_df[tehsil_col].dropna().unique().tolist())
-    tehsil = st.selectbox("Select Tehsil", tehsils)
+
+    tehsil = st.selectbox(
+       "Select Tehsil",
+       tehsils,
+       index=None,
+       placeholder="Choose Tehsil..."
+    )
+
+    if tehsil is None:
+        st.stop()
 
     selected = district_df[district_df[tehsil_col] == tehsil]
-
-    if selected.empty:
-        st.error("No spatial data found for selected location")
-        return
 
     # -----------------------------
     # SAFE GEOMETRY HANDLING (FINAL FIX)
