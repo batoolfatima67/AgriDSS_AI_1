@@ -11,7 +11,7 @@ st.sidebar.title("🌾 AI-Powered Agriculture Decision Support System (AgriDSS_A
 
 page = st.sidebar.radio(
     "Navigation",
-    ["Farm Input", "Run Analysis", "Dashboard", "Report"]
+    ["Farm Input", "Run Analysis", "Dashboard", "AI Recommendation", "Report"]
 )
 
 if page == "Dashboard":
@@ -23,8 +23,8 @@ elif page == "Farm Input":
 elif page == "Run Analysis":
     run_full_analysis()
 
-elif page == "Report":
-    generate_report()
-
 elif page == "AI Recommendation":
     render_ai_recommendation()
+    
+elif page == "Report":
+    generate_report()
