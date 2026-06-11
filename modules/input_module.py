@@ -44,20 +44,20 @@ def render_input_module():
     tehsil_col = [c for c in gdf.columns if "TEH" in c or "TAHS" in c or "NAME" in c][0]
 
     # -----------------------------
-# District selection
-# -----------------------------
-districts = sorted(
-    gdf[district_col].dropna().unique().tolist()
-)
+    # District selection
+    # -----------------------------
+    districts = sorted(
+        gdf[district_col].dropna().unique().tolist()
+    )
 
-district = st.selectbox(
-    "Select District",
-    ["Select District"] + districts
-)
+    district = st.selectbox(
+       "Select District",
+       ["Select District"] + districts
+    )
 
-# -----------------------------
-# Tehsil selection
-# -----------------------------
+    # -----------------------------
+    # Tehsil selection
+    # -----------------------------
 if district != "Select District":
 
     district_df = gdf[
@@ -74,26 +74,26 @@ if district != "Select District":
 else:
     tehsils = []
 
-tehsil = st.selectbox(
-    "Select Tehsil",
-    ["Select Tehsil"] + tehsils
-)
+    tehsil = st.selectbox(
+       "Select Tehsil",
+       ["Select Tehsil"] + tehsils
+    )
 
-# -----------------------------
-# WAIT UNTIL USER SELECTS BOTH
-# -----------------------------
+    # -----------------------------
+    # WAIT UNTIL USER SELECTS BOTH
+    # -----------------------------
 if district == "Select District":
     return
 
 if tehsil == "Select Tehsil":
     return
 
-# -----------------------------
-# FILTER SELECTED AREA
-# -----------------------------
-selected = district_df[
-    district_df[tehsil_col] == tehsil
-]
+    # -----------------------------
+    # FILTER SELECTED AREA
+    # -----------------------------
+    selected = district_df[
+       district_df[tehsil_col] == tehsil
+    ]
 
 if selected.empty:
     st.error(
