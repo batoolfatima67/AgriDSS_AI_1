@@ -1,16 +1,13 @@
 import streamlit as st
 import geopandas as gpd
 import folium
-
 from streamlit_folium import st_folium
-
 from modules.gee_ndvi import (
     get_ndvi_from_gee,
     get_ndvi_tile_layer,
     get_ndvi_stats
 )
 
-st.error("NEW DASHBOARD VERSION LOADED")
 st.write(
     "GOOGLE_SERVICE_ACCOUNT" in st.secrets
 )
