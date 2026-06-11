@@ -25,3 +25,6 @@ elif page == "Run Analysis":
 
 elif page == "Report":
     generate_report()
+
+elif page == "AI Recommendation":
+    render_ai_recommendation()
