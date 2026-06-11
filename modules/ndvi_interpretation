@@ -1,0 +1,26 @@
+# ---------------------------------------------------
+# NDVI INTERPRETATION
+# ---------------------------------------------------
+
+def interpret_ndvi(ndvi):
+
+    if ndvi is None:
+        return "No NDVI Data Available"
+
+    elif ndvi < 0:
+        return "Water / Non-Vegetated Area"
+
+    elif ndvi < 0.20:
+        return "Very Poor Vegetation"
+
+    elif ndvi < 0.40:
+        return "Poor Vegetation"
+
+    elif ndvi < 0.60:
+        return "Moderate Vegetation"
+
+    elif ndvi < 0.80:
+        return "Healthy Vegetation"
+
+    else:
+        return "Very Dense and Healthy Vegetation"
