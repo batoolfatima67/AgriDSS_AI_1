@@ -4,6 +4,7 @@ from modules.input_module import render_input_module
 from modules.analysis_engine import run_full_analysis
 from modules.dashboard import render_dashboard
 from modules.report_generator import generate_report
+from modules.ai_recommendation import render_ai_recommendation
 
 st.set_page_config(page_title="AgriDSS_AI", layout="wide")
 
