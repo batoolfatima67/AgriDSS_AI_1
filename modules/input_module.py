@@ -55,9 +55,6 @@ def render_input_module():
         placeholder="Choose District..."
     )
 
-    if district is None:
-       st.stop()
-
     district_df = gdf[gdf[district_col] == district]
   
     # -----------------------------
@@ -71,10 +68,7 @@ def render_input_module():
        index=None,
        placeholder="Choose Tehsil..."
     )
-
-    if tehsil is None:
-        st.stop()
-
+    
     selected = district_df[district_df[tehsil_col] == tehsil]
 
     # -----------------------------
