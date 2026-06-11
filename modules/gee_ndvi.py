@@ -1,65 +1,56 @@
 import ee
-import pandas as pd
-import streamlit as stt
+import json
+import streamlit as st
 
-def initialize_gee():
-
-    service_account_info = dict(
-    st.secrets["GOOGLE_SERVICE_ACCOUNT"]
-    )
-
-    credentials = ee.ServiceAccountCredentials(
-    service_account_info["client_email"],
-    key_data=json.dumps(service_account_info)
-    )
-
-    ee.Initialize(credentials)
-
-initialize_gee()
 
 # --------------------------------
 # INITIALIZE EARTH ENGINE
 # --------------------------------
+def initialize_gee():
+
+    service_account_info = dict(
+        st.secrets["GOOGLE_SERVICE_ACCOUNT"]
+    )
+
+    credentials = ee.ServiceAccountCredentials(
+        service_account_info["client_email"],
+        key_data=json.dumps(service_account_info)
+    )
+
+    ee.Initialize(
+        credentials,
+        project="agri-ai-project-496918"
+    )
+
+
 try:
+    initialize_gee()
 
-    ee.Initialize(
-        project="agri-ai-project-496918"
-    )
+except Exception as e:
+    print("GEE Initialization Error:", e)
 
-except Exception:
-
-    ee.Authenticate()
-
-    ee.Initialize(
-        project="agri-ai-project-496918"
-    )
 
 # --------------------------------
 # SHAPELY → EE GEOMETRY
 # --------------------------------
 def shapely_to_ee(geometry):
 
-    geometry = geometry.simplify(
-        0.001
-    )
+    geometry = geometry.simplify(0.001)
 
     geo_json = geometry.__geo_interface__
 
-    return ee.Geometry(
-        geo_json
-    )
+    return ee.Geometry(geo_json)
+
 
 # --------------------------------
 # GET NDVI IMAGE
 # --------------------------------
 def get_ndvi_from_gee(geometry):
 
-    # EE GEOMETRY
     ee_geometry = shapely_to_ee(
         geometry
     )
 
-    # SENTINEL-2 COLLECTION
     collection = (
         ee.ImageCollection(
             "COPERNICUS/S2_SR_HARMONIZED"
@@ -80,16 +71,8 @@ def get_ndvi_from_gee(geometry):
         )
     )
 
-    # DEBUG
-    print(
-        "IMAGE COUNT:",
-        collection.size().getInfo()
-    )
-
-    # MEDIAN IMAGE
     image = collection.median()
 
-    # NDVI
     ndvi = image.normalizedDifference(
         ["B8", "B4"]
     ).rename("NDVI")
@@ -99,8 +82,9 @@ def get_ndvi_from_gee(geometry):
         ee_geometry
     )
 
+
 # --------------------------------
-# NDVI STATISTICS
+# NDVI STATS
 # --------------------------------
 def get_ndvi_stats(
     ndvi_image,
@@ -108,22 +92,21 @@ def get_ndvi_stats(
 ):
 
     stats = ndvi_image.reduceRegion(
-
         reducer=ee.Reducer.mean(),
-
         geometry=ee_geometry,
-
         scale=10,
-
         maxPixels=1e9
     )
 
     return stats.getInfo()
 
+
 # --------------------------------
-# NDVI TILE LAYER
+# TILE URL
 # --------------------------------
-def get_ndvi_tile_layer(ndvi_image):
+def get_ndvi_tile_layer(
+    ndvi_image
+):
 
     vis_params = {
         "min": 0,
@@ -139,5 +122,6 @@ def get_ndvi_tile_layer(ndvi_image):
         vis_params
     )
 
-    return map_id["tile_fetcher"].url_format
- 
+    return map_id[
+        "tile_fetcher"
+    ].url_format
