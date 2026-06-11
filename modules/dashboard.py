@@ -103,12 +103,12 @@ def render_dashboard():
         ndvi_url = get_ndvi_map_url(ndvi_image)
 
         folium.raster_layers.TileLayer(
-    tiles=ndvi_url,
-    name="🌿 NDVI - Vegetation Health (Pro)",
-    overlay=True,
-    control=True,
-    attr="Google Earth Engine | Sentinel-2 | NDVI Processing"
-    ).add_to(m)
+             tiles=ndvi_url,
+             name="🌿 NDVI - Vegetation Health (Pro)",
+             overlay=True,
+             control=True,
+             attr="Google Earth Engine | Sentinel-2 | NDVI Processing"
+           ).add_to(m)
 
     except Exception as e:
         st.warning(f"NDVI not loaded: {e}")
