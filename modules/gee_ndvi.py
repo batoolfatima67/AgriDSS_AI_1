@@ -2,7 +2,10 @@ import ee
 import json
 import streamlit as st
 
-
+@st.cache_data
+def get_ndvi_cached(geometry):
+    return get_ndvi_from_gee(geometry)
+    
 # --------------------------------
 # SAFE INITIALIZATION
 # --------------------------------
