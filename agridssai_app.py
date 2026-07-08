@@ -40,7 +40,7 @@ with st.sidebar:
         🌾 AgriDSS AI
         </h1>
 
-        <p style='text-align:center;color:#60A5FA;'>
+        <p style='text-align:center;color:white;'>
         Agricultural Intelligence Platform
         </p>
         """,
