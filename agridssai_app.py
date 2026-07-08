@@ -107,10 +107,10 @@ st.markdown(
     """
 <div style="
 background:white;
-padding:20px;
-border-radius:15px;
-box-shadow:0px 2px 12px rgba(0,0,0,.08);
-margin-bottom:20px;
+padding:14px;
+border-radius:10px;
+box-shadow:0px 2px 6px rgba(0,0,0,.08);
+margin-bottom:10px;
 ">
 
 <h2 style="margin-bottom:0;">
