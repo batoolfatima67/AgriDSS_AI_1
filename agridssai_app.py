@@ -52,6 +52,26 @@ page = st.sidebar.radio(
     ],
 )
 
+st.markdown("""
+<div style="
+background:white;
+padding:18px 25px;
+border-radius:15px;
+box-shadow:0 3px 12px rgba(0,0,0,.08);
+margin-bottom:25px;
+">
+
+<h2 style="margin:0;color:#1E3A8A;">
+🌾 AgriDSS AI
+</h2>
+
+<p style="margin:0;color:gray;">
+AI Powered Agricultural Decision Support System
+</p>
+
+</div>
+""", unsafe_allow_html=True)
+
 # -------------------------------------------------------
 # PAGES
 # -------------------------------------------------------
