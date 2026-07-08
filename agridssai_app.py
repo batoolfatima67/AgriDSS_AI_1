@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_option_menu import option_menu
 
 from modules.input_module import render_input_module
 from modules.analysis_engine import run_full_analysis
@@ -6,9 +7,9 @@ from modules.dashboard import render_dashboard
 from modules.report_generator import generate_report
 from modules.ai_recommendation import render_ai_recommendation
 
-# ==========================================================
-# PAGE CONFIGURATION
-# ==========================================================
+# --------------------------------------------------
+# PAGE CONFIG
+# --------------------------------------------------
 
 st.set_page_config(
     page_title="AgriDSS AI",
@@ -17,88 +18,127 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ==========================================================
-# LOAD CUSTOM CSS
-# ==========================================================
+# --------------------------------------------------
+# LOAD CSS
+# --------------------------------------------------
 
 try:
-    with open("styles/main.css", "r") as css:
+    with open("styles/main.css") as css:
         st.markdown(f"<style>{css.read()}</style>", unsafe_allow_html=True)
-except FileNotFoundError:
-    st.warning("styles/main.css not found.")
+except:
+    pass
 
-# ==========================================================
+# --------------------------------------------------
 # SIDEBAR
-# ==========================================================
+# --------------------------------------------------
 
-st.sidebar.markdown(
-    """
-    <div style="text-align:center; padding:10px 0;">
-        <h2 style="color:white; margin-bottom:0;">
-            🌾 AgriDSS AI
-        </h2>
+with st.sidebar:
 
-        <p style="color:#E5E7EB; font-size:14px;">
-            Agricultural Intelligence Platform
+    st.markdown(
+        """
+        <h1 style='text-align:center;color:white;margin-bottom:0;'>
+        🌾 AgriDSS AI
+        </h1>
+
+        <p style='text-align:center;color:#d1d5db;'>
+        Agricultural Intelligence Platform
         </p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+        """,
+        unsafe_allow_html=True,
+    )
 
-page = st.sidebar.radio(
-    "Navigation",
-    [
-        "🏠 Dashboard",
-        "🚜 Farm Management",
-        "📊 Analysis Center",
-        "🤖 AI Advisor",
-        "📄 Reports",
-    ],
-)
+    selected = option_menu(
+        menu_title=None,
 
-# ==========================================================
-# TOP HEADER
-# ==========================================================
+        options=[
+            "Dashboard",
+            "Farm Management",
+            "Analysis Center",
+            "AI Advisor",
+            "Reports"
+        ],
+
+        icons=[
+            "house-fill",
+            "geo-alt-fill",
+            "bar-chart-fill",
+            "robot",
+            "file-earmark-text-fill"
+        ],
+
+        default_index=0,
+
+        styles={
+            "container": {
+                "padding": "0!important",
+                "background-color": "#1E3A8A",
+            },
+
+            "icon": {
+                "color": "#93C5FD",
+                "font-size": "18px",
+            },
+
+            "nav-link": {
+                "font-size": "16px",
+                "text-align": "left",
+                "margin": "4px",
+                "border-radius": "10px",
+            },
+
+            "nav-link-selected": {
+                "background-color": "#2563EB",
+            },
+        },
+    )
+
+# --------------------------------------------------
+# HEADER
+# --------------------------------------------------
 
 st.markdown(
     """
-    <div style="
-        background:white;
-        padding:20px;
-        border-radius:15px;
-        box-shadow:0px 3px 10px rgba(0,0,0,0.08);
-        margin-bottom:20px;
-    ">
+<div style="
+background:white;
+padding:20px;
+border-radius:15px;
+box-shadow:0px 2px 12px rgba(0,0,0,.08);
+margin-bottom:20px;
+">
 
-        <h2 style="margin-bottom:5px;color:#2563EB;">
-            AgriDSS AI
-        </h2>
+<h2 style="margin-bottom:0;">
+🌾 AgriDSS AI
+</h2>
 
-        <p style="color:#6B7280;margin:0;">
-            AI Powered Agricultural Decision Support System
-        </p>
+<p style="color:gray;">
+AI Powered Agricultural Decision Support System
+</p>
 
-    </div>
-    """,
+</div>
+""",
     unsafe_allow_html=True,
 )
 
-# ==========================================================
+# --------------------------------------------------
 # PAGE ROUTING
-# ==========================================================
+# --------------------------------------------------
 
-if page == "🏠 Dashboard":
+if selected == "Dashboard":
+
     render_dashboard()
 
-elif page == "🚜 Farm Management":
+elif selected == "Farm Management":
+
     render_input_module()
 
-elif page == "📊 Analysis Center":
+elif selected == "Analysis Center":
+
     run_full_analysis()
 
-elif page == "🤖 AI Advisor":
+elif selected == "AI Advisor":
+
     render_ai_recommendation()
 
-elif page == "📄 Reports":
+elif selected == "Reports":
+
     generate_report()
