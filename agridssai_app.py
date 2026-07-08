@@ -70,24 +70,31 @@ with st.sidebar:
 
         styles={
             "container": {
-                "padding": "0!important",
-                "background-color": "#1E3A8A",
+                "padding": "8px",
+                "background-color": "#60A5FA",   # Light Blue
+                "border-radius": "15px",
             },
 
             "icon": {
-                "color": "#93C5FD",
-                "font-size": "18px",
+                "color": "white",
+                "font-size": "20px",
             },
 
             "nav-link": {
                 "font-size": "16px",
+                "font-weight": "600",
                 "text-align": "left",
-                "margin": "4px",
+                "margin": "6px 0",
+                "padding": "12px",
+                "color": "white",
                 "border-radius": "10px",
+                "--hover-color": "#93C5FD",
             },
 
             "nav-link-selected": {
-                "background-color": "#2563EB",
+               "background-color": "#2563EB",
+               "color": "white",
+               "font-weight": "700",
             },
         },
     )
