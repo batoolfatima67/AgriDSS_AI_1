@@ -130,15 +130,15 @@ AI Powered Agricultural Decision Support System
 # PAGE ROUTING
 # --------------------------------------------------
 
-if selected == "Dashboard":
+if selected == "Farm Management":
 
     render_dashboard()
 
-elif selected == "Farm Management":
+elif selected == "Analysis Center":
 
     render_input_module()
 
-elif selected == "Analysis Center":
+elif selected == "Dashboard":
 
     run_full_analysis()
 
