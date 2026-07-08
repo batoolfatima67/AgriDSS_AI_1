@@ -51,9 +51,9 @@ with st.sidebar:
         menu_title=None,
 
         options=[
-            "Dashboard",
             "Farm Management",
             "Analysis Center",
+            "Dashboard",
             "AI Advisor",
             "Reports"
         ],
