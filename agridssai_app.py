@@ -132,15 +132,15 @@ AI Powered Agricultural Decision Support System
 
 if selected == "Farm Management":
 
-    render_dashboard()
+    render_input_module()
 
 elif selected == "Analysis Center":
 
-    render_input_module()
+    run_full_analysis()
 
 elif selected == "Dashboard":
 
-    run_full_analysis()
+    render_dashboard()
 
 elif selected == "AI Advisor":
 
