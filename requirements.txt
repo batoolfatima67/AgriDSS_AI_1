@@ -1,4 +1,5 @@
 streamlit
+streamlit-option-menu==0.4.0
 geopandas
 pandas
 pyproj
