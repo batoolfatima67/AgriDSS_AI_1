@@ -44,9 +44,9 @@ st.sidebar.markdown(
 page = st.sidebar.radio(
     "",
     [
-        "🏠 Dashboard",
         "🚜 Farm Management",
         "📊 Run Analysis",
+        "🏠 Dashboard",
         "🤖 AI Advisor",
         "📄 Reports",
     ],
