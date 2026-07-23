@@ -13,6 +13,7 @@ from modules.ai_recommendation import render_ai_recommendation
 
 st.set_page_config(
     page_title="AgriDSS AI",
+    page_icon="🌾",
     layout="wide",
     initial_sidebar_state="expanded"
 )
